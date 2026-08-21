@@ -1,0 +1,9 @@
+# test/fixtures/organizations.yml
+
+organization_a:
+  name: GreenPilot Paysage A
+  slug: greenpilot-paysage-a
+
+organization_b:
+  name: GreenPilot Paysage B
+  slug: greenpilot-paysage-b

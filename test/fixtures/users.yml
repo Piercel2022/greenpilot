@@ -1,0 +1,57 @@
+# test/fixtures/users.yml
+
+owner_a:
+  organization: organization_a
+  first_name: Alice
+  last_name: Owner
+  email: owner.a@example.test
+  role: owner
+  active: true
+
+admin_a:
+  organization: organization_a
+  first_name: Bob
+  last_name: Admin
+  email: admin.a@example.test
+  role: admin
+  active: true
+
+manager_a:
+  organization: organization_a
+  first_name: Claire
+  last_name: Manager
+  email: manager.a@example.test
+  role: manager
+  active: true
+
+accountant_a:
+  organization: organization_a
+  first_name: David
+  last_name: Accountant
+  email: accountant.a@example.test
+  role: accountant
+  active: true
+
+field_worker_a:
+  organization: organization_a
+  first_name: Emma
+  last_name: FieldWorker
+  email: fieldworker.a@example.test
+  role: field_worker
+  active: true
+
+member_a:
+  organization: organization_a
+  first_name: Frank
+  last_name: Member
+  email: member.a@example.test
+  role: member
+  active: true
+
+member_b:
+  organization: organization_b
+  first_name: Grace
+  last_name: Member
+  email: member.b@example.test
+  role: member
+  active: true
