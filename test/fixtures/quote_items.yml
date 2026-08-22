@@ -1,0 +1,41 @@
+quote_item_a:
+  quote: quote_a
+  service_item: item_a
+  description: Tonte de pelouse
+  quantity: 100.000
+  unit: m2
+  unit_price: 0.80
+  discount_percentage: 0.00
+  tax_rate: 20.00
+  subtotal: 80.00
+  tax_amount: 16.00
+  total_amount: 96.00
+  labor_cost: 40.00
+  material_cost: 5.00
+  equipment_cost: 10.00
+  estimated_cost: 55.00
+  margin_amount: 25.00
+  margin_percentage: 31.25
+  estimated_duration_minutes: 60
+  position: 1
+
+quote_item_b:
+  quote: quote_b
+  service_item: item_b
+  description: Création d'espace vert
+  quantity: 100.000
+  unit: m2
+  unit_price: 25.00
+  discount_percentage: 0.00
+  tax_rate: 20.00
+  subtotal: 2500.00
+  tax_amount: 500.00
+  total_amount: 3000.00
+  labor_cost: 500.00
+  material_cost: 800.00
+  equipment_cost: 100.00
+  estimated_cost: 1400.00
+  margin_amount: 1100.00
+  margin_percentage: 44.00
+  estimated_duration_minutes: 480
+  position: 1
