@@ -1,6 +1,3 @@
-
-# app/policies/site_policy.rb
-
 class SitePolicy < ApplicationPolicy
   def index?
     authenticated?
@@ -11,7 +8,7 @@ class SitePolicy < ApplicationPolicy
   end
 
   def create?
-    management?
+    management? && customer_same_organization?
   end
 
   def update?
@@ -26,5 +23,14 @@ class SitePolicy < ApplicationPolicy
     def resolve
       scope.where(organization_id: user.organization_id)
     end
+  end
+
+  private
+
+  def customer_same_organization?
+    return false unless record.customer
+    return false unless record.organization_id == user.organization_id
+
+    record.customer.organization_id == user.organization_id
   end
 end
