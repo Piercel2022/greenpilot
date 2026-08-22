@@ -1,0 +1,27 @@
+invoice_item_a:
+  invoice: invoice_a
+  service_item: item_a
+  description: Tonte professionnelle des espaces verts
+  position: 1
+  quantity: 100.000
+  unit: m2
+  unit_price: 0.80
+  discount_percentage: 0.0
+  tax_rate: 20.0
+  subtotal: 80.00
+  tax_amount: 16.00
+  total_amount: 96.00
+
+invoice_item_b:
+  invoice: invoice_b
+  service_item: item_b
+  description: Création et aménagement d'espace vert
+  position: 1
+  quantity: 100.000
+  unit: m2
+  unit_price: 25.00
+  discount_percentage: 0.0
+  tax_rate: 20.0
+  subtotal: 2500.00
+  tax_amount: 500.00
+  total_amount: 3000.00
