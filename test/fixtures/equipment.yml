@@ -1,0 +1,29 @@
+# test/fixtures/equipment.yml
+
+equipment_a:
+  organization: organization_a
+  name: Tondeuse professionnelle A
+  equipment_type: mower
+  brand: Honda
+  model: HRX
+  serial_number: EQ-A-001
+  status: available
+  active: true
+  purchase_date: 2026-01-15
+  purchase_price: 2500.00
+  maintenance_interval_days: 90
+  notes: Tondeuse principale de l'organisation A
+
+equipment_b:
+  organization: organization_b
+  name: Débroussailleuse professionnelle B
+  equipment_type: brush_cutter
+  brand: Stihl
+  model: FS 131
+  serial_number: EQ-B-001
+  status: available
+  active: true
+  purchase_date: 2026-02-10
+  purchase_price: 1800.00
+  maintenance_interval_days: 120
+  notes: Équipement de l'organisation B
