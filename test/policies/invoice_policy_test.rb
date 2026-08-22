@@ -1,6 +1,7 @@
 require "test_helper"
 
 class InvoicePolicyTest < ActiveSupport::TestCase
+  
   test "authenticated user can list invoices" do
     user = users(:member_a)
 
