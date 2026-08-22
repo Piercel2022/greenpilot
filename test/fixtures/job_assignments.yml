@@ -1,0 +1,19 @@
+assignment_a:
+  organization: organization_a
+  job: job_a
+  user: field_worker_a
+  assignment_type: primary
+  role: worker
+  active: true
+  assigned_at: 2026-08-22 09:00:00
+  accepted_at: 2026-08-22 09:15:00
+
+assignment_b:
+  organization: organization_b
+  job: job_b
+  user: field_worker_b
+  assignment_type: primary
+  role: worker
+  active: true
+  assigned_at: 2026-08-22 09:00:00
+  accepted_at: 2026-08-22 09:15:00
