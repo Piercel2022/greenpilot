@@ -1,0 +1,41 @@
+job_a:
+  organization: organization_a
+  customer: customer_a
+  site: site_a
+  quote: quote_a
+  team: team_a
+  vehicle: vehicle_a
+  title: Entretien du jardin principal
+  description: Tonte et entretien général
+  job_type: maintenance
+  priority: normal
+  status: planned
+  scheduled_date: 2026-08-25
+  scheduled_start_at: 2026-08-25 08:00:00
+  scheduled_end_at: 2026-08-25 12:00:00
+  estimated_duration_minutes: 240
+  address: 1 rue du Jardin
+  latitude: 48.5734
+  longitude: 7.7521
+  weather_risk: unknown
+
+job_b:
+  organization: organization_b
+  customer: customer_b
+  site: site_b
+  quote: quote_b
+  team: team_b
+  vehicle: vehicle_b
+  title: Création espace vert
+  description: Création d'un espace paysager
+  job_type: creation
+  priority: high
+  status: planned
+  scheduled_date: 2026-08-26
+  scheduled_start_at: 2026-08-26 08:00:00
+  scheduled_end_at: 2026-08-26 17:00:00
+  estimated_duration_minutes: 540
+  address: 2 rue du Parc
+  latitude: 48.5800
+  longitude: 7.7600
+  weather_risk: unknown
