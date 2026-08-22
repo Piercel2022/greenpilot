@@ -1,0 +1,17 @@
+category_a:
+  organization: organization_a
+  code: ENT
+  name: Entretien
+  category_type: maintenance
+  description: Travaux réguliers d'entretien des espaces verts
+  position: 1
+  active: true
+
+category_b:
+  organization: organization_b
+  code: CRE
+  name: Création
+  category_type: creation
+  description: Création et aménagement des espaces verts
+  position: 1
+  active: true
