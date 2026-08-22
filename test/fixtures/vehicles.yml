@@ -1,0 +1,29 @@
+# test/fixtures/vehicles.yml
+
+vehicle_a:
+  organization: organization_a
+  name: Camion Paysage A
+  registration_number: AB-123-CD
+  brand: Renault
+  model: Master
+  vehicle_type: utilitaire
+  fuel_type: diesel
+  capacity: 3500.00
+  fuel_consumption: 9.50
+  year: 2024
+  active: true
+  notes: Véhicule principal de l'organisation A
+
+vehicle_b:
+  organization: organization_b
+  name: Camion Paysage B
+  registration_number: EF-456-GH
+  brand: Peugeot
+  model: Boxer
+  vehicle_type: utilitaire
+  fuel_type: diesel
+  capacity: 3000.00
+  fuel_consumption: 8.90
+  year: 2023
+  active: true
+  notes: Véhicule principal de l'organisation B
