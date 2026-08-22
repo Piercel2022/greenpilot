@@ -1,0 +1,9 @@
+site_a:
+  organization: organization_a
+  customer: customer_a
+  name: Jardin principal
+
+site_b:
+  organization: organization_b
+  customer: customer_b
+  name: Parc paysager
