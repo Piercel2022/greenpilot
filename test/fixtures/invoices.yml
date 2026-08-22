@@ -1,0 +1,41 @@
+invoice_a:
+  organization: organization_a
+  customer: customer_a
+  job: job_a
+  quote: quote_a
+  site: site_a
+  number: FAC-2026-0001
+  issue_date: 2026-08-22
+  due_date: 2026-09-21
+  status: issued
+  subtotal: 1000.00
+  discount_amount: 0.00
+  tax_amount: 200.00
+  total_amount: 1200.00
+  amount_paid: 0.00
+  amount_due: 1200.00
+  payment_method:
+  payment_reference:
+  paid_at:
+  notes: Facture entretien jardin principal
+
+invoice_b:
+  organization: organization_b
+  customer: customer_b
+  job: job_b
+  quote: quote_b
+  site: site_b
+  number: FAC-2026-0002
+  issue_date: 2026-08-22
+  due_date: 2026-09-21
+  status: issued
+  subtotal: 2000.00
+  discount_amount: 0.00
+  tax_amount: 400.00
+  total_amount: 2400.00
+  amount_paid: 0.00
+  amount_due: 2400.00
+  payment_method:
+  payment_reference:
+  paid_at:
+  notes: Facture création espace vert
