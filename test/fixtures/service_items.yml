@@ -1,0 +1,35 @@
+item_a:
+  organization: organization_a
+  service_category: category_a
+  code: TON
+  name: Tonte de pelouse
+  description: Tonte professionnelle des espaces verts
+  unit: m2
+  default_quantity: 100.000
+  default_unit_price: 0.80
+  default_margin_percentage: 30.00
+  labor_cost: 40.00
+  material_cost: 5.00
+  equipment_cost: 10.00
+  overhead_cost: 8.00
+  estimated_duration_minutes: 60
+  position: 1
+  active: true
+
+item_b:
+  organization: organization_b
+  service_category: category_b
+  code: CRE
+  name: Création d'espace vert
+  description: Création et aménagement d'espace vert
+  unit: m2
+  default_quantity: 100.000
+  default_unit_price: 25.00
+  default_margin_percentage: 35.00
+  labor_cost: 500.00
+  material_cost: 800.00
+  equipment_cost: 100.00
+  overhead_cost: 150.00
+  estimated_duration_minutes: 480
+  position: 1
+  active: true
