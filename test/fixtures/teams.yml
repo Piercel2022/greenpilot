@@ -1,0 +1,17 @@
+# test/fixtures/teams.yml
+
+team_a:
+  organization: organization_a
+  code: TEAM-A
+  name: Équipe Alpha
+  color: "#22C55E"
+  description: Équipe opérationnelle principale
+  active: true
+
+team_b:
+  organization: organization_b
+  code: TEAM-B
+  name: Équipe Beta
+  color: "#3B82F6"
+  description: Équipe opérationnelle secondaire
+  active: true
