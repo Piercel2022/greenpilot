@@ -1,0 +1,17 @@
+# test/fixtures/team_memberships.yml
+
+membership_a:
+  organization: organization_a
+  team: team_a
+  user: member_a
+  role: member
+  active: true
+  start_date: 2026-01-01
+
+membership_b:
+  organization: organization_b
+  team: team_b
+  user: member_b
+  role: member
+  active: true
+  start_date: 2026-01-01
