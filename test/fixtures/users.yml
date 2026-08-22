@@ -55,3 +55,11 @@ member_b:
   email: member.b@example.test
   role: member
   active: true
+
+field_worker_b:
+  organization: organization_b
+  first_name: Henry
+  last_name: FieldWorker
+  email: fieldworker.b@example.test
+  role: field_worker
+  active: true
