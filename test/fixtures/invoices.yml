@@ -4,7 +4,7 @@ invoice_a:
   job: job_a
   quote: quote_a
   site: site_a
-  number: FAC-2026-0001
+  number: INV-2026-0001
   issue_date: 2026-08-22
   due_date: 2026-09-21
   status: issued
@@ -14,9 +14,6 @@ invoice_a:
   total_amount: 1200.00
   amount_paid: 0.00
   amount_due: 1200.00
-  payment_method:
-  payment_reference:
-  paid_at:
   notes: Facture entretien jardin principal
 
 invoice_b:
@@ -25,7 +22,7 @@ invoice_b:
   job: job_b
   quote: quote_b
   site: site_b
-  number: FAC-2026-0002
+  number: INV-2026-0002
   issue_date: 2026-08-22
   due_date: 2026-09-21
   status: issued
@@ -35,7 +32,4 @@ invoice_b:
   total_amount: 2400.00
   amount_paid: 0.00
   amount_due: 2400.00
-  payment_method:
-  payment_reference:
-  paid_at:
   notes: Facture création espace vert
