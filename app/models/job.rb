@@ -7,11 +7,11 @@ class Job < ApplicationRecord
   belongs_to :team, optional: true
   belongs_to :vehicle, optional: true
 
-  has_many :job_assignments
   has_many :users, through: :job_assignments
 
-  has_many :job_time_entries
-  has_many :job_reports
+  has_many :job_assignments, dependent: :destroy
+  has_many :job_time_entries, dependent: :destroy
+  has_many :job_reports, dependent: :destroy
 
   validates :title, presence: true
   validates :job_type, presence: true
