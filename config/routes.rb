@@ -8,8 +8,22 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   # root "posts#index"
   namespace :api do
-    namespace :v1 do
-      resources :customers
-    end
+  namespace :v1 do
+    post "auth/login", to: "auth#login"
+    get "auth/me", to: "auth#me"
+
+    resources :customers
+    resources :sites
+    resources :service_categories
+    resources :service_items
+    resources :quotes
+    resources :quote_items
+    resources :teams
+    resources :team_memberships
+    resources :vehicles
+    resources :equipment
+    resources :jobs
+    resources :job_assignments
   end
+ end
 end
