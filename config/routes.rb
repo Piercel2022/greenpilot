@@ -24,6 +24,10 @@ Rails.application.routes.draw do
     resources :equipment
     resources :jobs
     resources :job_assignments
+    resources :job_time_entries
+    resources :job_reports
+    resources :invoices
+    resources :invoice_items
   end
  end
 end

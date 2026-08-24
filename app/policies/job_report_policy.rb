@@ -21,14 +21,27 @@ class JobReportPolicy < ApplicationPolicy
 
   class Scope < ApplicationPolicy::Scope
     def resolve
-      scope.where(organization_id: user.organization_id)
+      scope
+        .joins(:job)
+        .where(
+          job_reports: {
+            organization_id: user.organization_id
+          },
+          jobs: {
+            organization_id: user.organization_id
+          }
+        )
     end
   end
 
   private
 
   def same_organization?
-    authenticated? &&
-      record.organization_id == user.organization_id
+    return false unless authenticated?
+    return false unless record.organization
+    return false unless record.job
+
+    record.organization_id == user.organization_id &&
+      record.job.organization_id == user.organization_id
   end
 end
