@@ -176,7 +176,13 @@ class Api::V1::QuotesControllerTest < ActionDispatch::IntegrationTest
            }
     end
 
-    assert_response :forbidden
+    assert_response :unprocessable_entity
+
+    body = JSON.parse(response.body)
+
+    assert_equal "Unprocessable Entity", body["error"]
+    assert_includes body["messages"],
+                "Site must belong to the selected customer"
   end
 
   test "manager cannot create quote with site from another organization" do
@@ -196,7 +202,17 @@ class Api::V1::QuotesControllerTest < ActionDispatch::IntegrationTest
            }
     end
 
-    assert_response :forbidden
+    assert_response :unprocessable_entity
+
+    body = JSON.parse(response.body)
+
+    assert_equal "Unprocessable Entity", body["error"]
+
+    assert_includes body["messages"],
+                "Site must belong to the same organization"
+
+    assert_includes body["messages"],
+                "Site must belong to the selected customer"
   end
 
   test "manager can update quote" do

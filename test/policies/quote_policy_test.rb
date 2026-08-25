@@ -136,35 +136,6 @@ class QuotePolicyTest < ActiveSupport::TestCase
     assert_not QuotePolicy.new(user, quote).destroy?
   end
 
-  test "manager cannot create quote for foreign customer" do
-    user = users(:manager_a)
-
-    quote = Quote.new(
-      organization: user.organization,
-      customer: customers(:customer_b),
-      site: sites(:site_a),
-      number: "DEV-CROSS-001",
-      title: "Cross organization",
-      issue_date: Date.current
-    )
-
-    assert_not QuotePolicy.new(user, quote).create?
-  end
-
-  test "manager cannot create quote for foreign site" do
-    user = users(:manager_a)
-
-    quote = Quote.new(
-      organization: user.organization,
-      customer: customers(:customer_a),
-      site: sites(:site_b),
-      number: "DEV-CROSS-002",
-      title: "Cross organization",
-      issue_date: Date.current
-    )
-
-    assert_not QuotePolicy.new(user, quote).create?
-  end
 
   test "manager cannot update quote with foreign customer" do
     user = users(:manager_a)

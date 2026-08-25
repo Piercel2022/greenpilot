@@ -8,7 +8,7 @@ class QuotePolicy < ApplicationPolicy
   end
 
   def create?
-    same_organization? && management?
+    management?
   end
 
   def update?
