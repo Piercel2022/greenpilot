@@ -53,6 +53,8 @@ ApplicationRecord.transaction do
 
   users = {}
 
+  seed_password = "GreenPilot2026!"
+
   users_data = [
     {
       key: :owner_a,
@@ -132,7 +134,14 @@ ApplicationRecord.transaction do
     key = data.delete(:key)
 
     user = User.find_or_initialize_by(email: data[:email])
-    user.assign_attributes(data)
+
+    user.assign_attributes(
+      data.merge(
+        password: seed_password,
+        password_confirmation: seed_password
+      )
+    )
+
     user.active = true
     user.save!
 
