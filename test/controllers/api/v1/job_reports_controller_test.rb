@@ -72,7 +72,8 @@ class Api::V1::JobReportsControllerTest < ActionDispatch::IntegrationTest
       job_type: "maintenance",
       status: "completed",
       priority: "normal",
-      scheduled_date: Date.current
+      scheduled_date: Date.current,
+      completed_at: Time.zone.parse("2026-08-22 16:30:00")
     )
 
     @other_job = Job.create!(
@@ -83,7 +84,8 @@ class Api::V1::JobReportsControllerTest < ActionDispatch::IntegrationTest
       job_type: "maintenance",
       status: "completed",
       priority: "normal",
-      scheduled_date: Date.current
+      scheduled_date: Date.current,
+      completed_at: Time.zone.parse("2026-08-22 16:30:00")
     )
 
     @report = JobReport.create!(
