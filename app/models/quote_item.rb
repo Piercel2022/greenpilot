@@ -22,5 +22,20 @@ class QuoteItem < ApplicationRecord
               less_than_or_equal_to: 100
             }
 
+  validate :service_item_belongs_to_quote_organization
+
   scope :ordered, -> { order(:position) }
+
+  private
+
+  def service_item_belongs_to_quote_organization
+    return if quote.blank? || service_item.blank?
+
+    if service_item.organization_id != quote.organization_id
+      errors.add(
+        :service_item,
+        "must belong to the same organization as the quote"
+      )
+    end
+  end
 end

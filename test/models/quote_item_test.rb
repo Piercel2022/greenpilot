@@ -78,6 +78,35 @@ class QuoteItemTest < ActiveSupport::TestCase
     assert item.errors[:discount_percentage].any?
   end
 
+  test "rejects service item from another organization" do
+    item = QuoteItem.new(
+      quote: quotes(:quote_a),
+      service_item: service_items(:item_b),
+      description: "Cross organization",
+      quantity: 1,
+      unit: "unit",
+      unit_price: 100
+    )
+
+    assert_not item.valid?
+
+    assert_includes item.errors.full_messages,
+                  "Service item must belong to the same organization as the quote"
+  end
+
+  test "accepts service item from the same organization as quote" do
+    item = QuoteItem.new(
+      quote: quotes(:quote_a),
+      service_item: service_items(:item_a),
+      description: "Valid item",
+      quantity: 1,
+      unit: "unit",
+      unit_price: 100
+    )
+
+    assert item.valid?
+  end
+
   test "tax rate must be between zero and one hundred" do
     item = QuoteItem.new(
       quote: @quote,
