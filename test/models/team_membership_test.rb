@@ -57,6 +57,34 @@ class TeamMembershipTest < ActiveSupport::TestCase
     assert duplicate.errors[:user_id].any?
   end
 
+  test "rejects team from another organization" do
+    membership = TeamMembership.new(
+      organization: organizations(:organization_a),
+      team: teams(:team_b),
+      user: users(:member_a),
+      role: "member"
+    )
+
+    assert_not membership.valid?
+
+    assert_includes membership.errors.full_messages,
+                  "Team must belong to the same organization"
+  end
+
+  test "rejects user from another organization" do
+    membership = TeamMembership.new(
+      organization: organizations(:organization_a),
+      team: teams(:team_a),
+      user: users(:member_b),
+      role: "member"
+    )
+
+    assert_not membership.valid?
+
+    assert_includes membership.errors.full_messages,
+                  "User must belong to the same organization"
+  end
+
   test "active and inactive scopes work" do
     active = TeamMembership.create!(
       organization: @organization,
