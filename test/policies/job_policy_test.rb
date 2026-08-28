@@ -452,4 +452,39 @@ class JobPolicyTest < ActiveSupport::TestCase
 
     assert_not_includes result, job
   end
+
+# ============================================================
+# SCOPE
+# ============================================================
+
+  test "scope returns jobs from user's organization only" do
+    user = users(:member_a)
+
+    jobs = JobPolicy::Scope.new(user, Job.all).resolve
+
+    assert_includes jobs, jobs(:job_a)
+    assert_not_includes jobs, jobs(:job_b)
+  end
+
+  test "scope excludes job with foreign customer" do
+    user = users(:member_a)
+    job = jobs(:job_a)
+
+    job.update_column(:customer_id, customers(:customer_b).id)
+
+    jobs = JobPolicy::Scope.new(user, Job.all).resolve
+
+    assert_not_includes jobs, job
+  end
+
+  test "scope excludes job with foreign site" do
+    user = users(:member_a)
+    job = jobs(:job_a)
+
+    job.update_column(:site_id, sites(:site_b).id)
+
+    jobs = JobPolicy::Scope.new(user, Job.all).resolve
+
+    assert_not_includes jobs, job
+  end
 end
