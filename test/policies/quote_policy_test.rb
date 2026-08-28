@@ -7,6 +7,36 @@ class QuotePolicyTest < ActiveSupport::TestCase
     assert QuotePolicy.new(user, Quote).index?
   end
 
+  test "owner can create quote" do
+  user = users(:owner_a)
+
+  quote = Quote.new(
+    organization: user.organization,
+    customer: customers(:customer_a),
+    site: sites(:site_a),
+    number: "DEV-OWNER-001",
+    title: "Nouvelle proposition",
+    issue_date: Date.current
+  )
+
+  assert QuotePolicy.new(user, quote).create?
+end
+
+test "admin can create quote" do
+  user = users(:admin_a)
+
+  quote = Quote.new(
+    organization: user.organization,
+    customer: customers(:customer_a),
+    site: sites(:site_a),
+    number: "DEV-ADMIN-001",
+    title: "Nouvelle proposition",
+    issue_date: Date.current
+  )
+
+  assert QuotePolicy.new(user, quote).create?
+end
+
   test "user can view quote from same organization" do
     user = users(:member_a)
     quote = quotes(:quote_a)
@@ -136,7 +166,6 @@ class QuotePolicyTest < ActiveSupport::TestCase
     assert_not QuotePolicy.new(user, quote).destroy?
   end
 
-
   test "manager cannot update quote with foreign customer" do
     user = users(:manager_a)
     quote = quotes(:quote_a)
@@ -151,6 +180,28 @@ class QuotePolicyTest < ActiveSupport::TestCase
     quote = quotes(:quote_a)
 
     quote.site = sites(:site_b)
+
+    assert_not QuotePolicy.new(user, quote).update?
+  end
+
+  test "manager cannot update quote with site belonging to another customer in same organization" do
+    user = users(:manager_a)
+    quote = quotes(:quote_a)
+
+    other_customer = Customer.create!(
+      organization: organizations(:organization_a),
+      customer_type: :individual,
+      first_name: "Other",
+      last_name: "Customer"
+    )
+
+    other_site = Site.create!(
+      organization: organizations(:organization_a),
+      customer: other_customer,
+      name: "Other site"
+    )
+
+    quote.site = other_site
 
     assert_not QuotePolicy.new(user, quote).update?
   end
