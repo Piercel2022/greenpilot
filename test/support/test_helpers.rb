@@ -10,4 +10,10 @@ module TestHelpers
       role: role
     )
   end
+
+  def auth_headers(user)
+    {
+      "Authorization" => "Bearer #{JwtService.encode(user)}"
+    }
+  end
 end
