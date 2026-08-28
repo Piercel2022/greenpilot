@@ -1,12 +1,20 @@
+
 require "test_helper"
 
 class InvoicePolicyTest < ActiveSupport::TestCase
-  
+  # ============================================================
+  # INDEX
+  # ============================================================
+
   test "authenticated user can list invoices" do
     user = users(:member_a)
 
     assert InvoicePolicy.new(user, Invoice).index?
   end
+
+  # ============================================================
+  # SHOW
+  # ============================================================
 
   test "user can view invoice from same organization" do
     user = users(:member_a)
@@ -22,6 +30,72 @@ class InvoicePolicyTest < ActiveSupport::TestCase
     assert_not InvoicePolicy.new(user, invoice).show?
   end
 
+  test "user cannot view invoice with foreign customer" do
+    user = users(:member_a)
+    invoice = invoices(:invoice_a)
+
+    invoice.customer = customers(:customer_b)
+
+    assert_not InvoicePolicy.new(user, invoice).show?
+  end
+
+  test "user cannot view invoice with foreign job" do
+    user = users(:member_a)
+    invoice = invoices(:invoice_a)
+
+    invoice.job = jobs(:job_b)
+
+    assert_not InvoicePolicy.new(user, invoice).show?
+  end
+
+  test "user cannot view invoice with foreign quote" do
+    user = users(:member_a)
+    invoice = invoices(:invoice_a)
+
+    invoice.quote = quotes(:quote_b)
+
+    assert_not InvoicePolicy.new(user, invoice).show?
+  end
+
+  test "user cannot view invoice with foreign site" do
+    user = users(:member_a)
+    invoice = invoices(:invoice_a)
+
+    invoice.site = sites(:site_b)
+
+    assert_not InvoicePolicy.new(user, invoice).show?
+  end
+
+  # ============================================================
+  # CREATE
+  # ============================================================
+
+  test "owner can create invoice" do
+    user = users(:owner_a)
+
+    invoice = Invoice.new(
+      organization: user.organization,
+      customer: customers(:customer_a),
+      number: "INV-TEST-OWNER",
+      issue_date: Date.current
+    )
+
+    assert InvoicePolicy.new(user, invoice).create?
+  end
+
+  test "admin can create invoice" do
+    user = users(:admin_a)
+
+    invoice = Invoice.new(
+      organization: user.organization,
+      customer: customers(:customer_a),
+      number: "INV-TEST-ADMIN",
+      issue_date: Date.current
+    )
+
+    assert InvoicePolicy.new(user, invoice).create?
+  end
+
   test "manager can create invoice" do
     user = users(:manager_a)
 
@@ -31,7 +105,7 @@ class InvoicePolicyTest < ActiveSupport::TestCase
       site: sites(:site_a),
       job: jobs(:job_a),
       quote: quotes(:quote_a),
-      number: "INV-TEST-001",
+      number: "INV-TEST-MANAGER",
       issue_date: Date.current
     )
 
@@ -44,7 +118,7 @@ class InvoicePolicyTest < ActiveSupport::TestCase
     invoice = Invoice.new(
       organization: user.organization,
       customer: customers(:customer_a),
-      number: "INV-TEST-002",
+      number: "INV-TEST-MEMBER",
       issue_date: Date.current
     )
 
@@ -57,95 +131,24 @@ class InvoicePolicyTest < ActiveSupport::TestCase
     invoice = Invoice.new(
       organization: user.organization,
       customer: customers(:customer_a),
-      number: "INV-TEST-003",
+      number: "INV-TEST-ACCOUNTANT",
       issue_date: Date.current
     )
 
     assert_not InvoicePolicy.new(user, invoice).create?
   end
 
-  test "accountant can update invoice" do
-    user = users(:accountant_a)
-    invoice = invoices(:invoice_a)
-
-    assert InvoicePolicy.new(user, invoice).update?
-  end
-
-  test "manager can update invoice" do
-    user = users(:manager_a)
-    invoice = invoices(:invoice_a)
-
-    assert InvoicePolicy.new(user, invoice).update?
-  end
-
-  test "member cannot update invoice" do
-    user = users(:member_a)
-    invoice = invoices(:invoice_a)
-
-    assert_not InvoicePolicy.new(user, invoice).update?
-  end
-
-  test "field worker cannot update invoice" do
+  test "field worker cannot create invoice" do
     user = users(:field_worker_a)
-    invoice = invoices(:invoice_a)
 
-    assert_not InvoicePolicy.new(user, invoice).update?
-  end
+    invoice = Invoice.new(
+      organization: user.organization,
+      customer: customers(:customer_a),
+      number: "INV-TEST-FIELD-WORKER",
+      issue_date: Date.current
+    )
 
-  test "manager cannot update invoice from another organization" do
-    user = users(:manager_a)
-    invoice = invoices(:invoice_b)
-
-    assert_not InvoicePolicy.new(user, invoice).update?
-  end
-
-  test "accountant cannot update invoice from another organization" do
-    user = users(:accountant_a)
-    invoice = invoices(:invoice_b)
-
-    assert_not InvoicePolicy.new(user, invoice).update?
-  end
-
-  test "owner can destroy invoice" do
-    user = users(:owner_a)
-    invoice = invoices(:invoice_a)
-
-    assert InvoicePolicy.new(user, invoice).destroy?
-  end
-
-  test "admin can destroy invoice" do
-    user = users(:admin_a)
-    invoice = invoices(:invoice_a)
-
-    assert InvoicePolicy.new(user, invoice).destroy?
-  end
-
-  test "manager cannot destroy invoice" do
-    user = users(:manager_a)
-    invoice = invoices(:invoice_a)
-
-    assert_not InvoicePolicy.new(user, invoice).destroy?
-  end
-
-  test "accountant cannot destroy invoice" do
-    user = users(:accountant_a)
-    invoice = invoices(:invoice_a)
-
-    assert_not InvoicePolicy.new(user, invoice).destroy?
-  end
-
-  test "field worker cannot destroy invoice" do
-    user = users(:field_worker_a)
-    invoice = invoices(:invoice_a)
-
-    assert_not InvoicePolicy.new(user, invoice).destroy?
-  end
-
-  test "owner cannot destroy invoice from another organization" do
-    user = users(:owner_a)
-    invoice = invoices(:invoice_b)
-
-    assert_not InvoicePolicy.new(user, invoice).destroy?
+    assert_not InvoicePolicy.new(user, invoice).create?
   end
 
   test "manager cannot create invoice for foreign customer" do
@@ -203,19 +206,264 @@ class InvoicePolicyTest < ActiveSupport::TestCase
     assert_not InvoicePolicy.new(user, invoice).create?
   end
 
-  test "scope returns only invoices from user's organization" do
-    user = users(:member_a)
+  test "owner cannot create invoice for foreign customer" do
+    user = users(:owner_a)
 
-    result = InvoicePolicy::Scope
-      .new(user, Invoice.all)
-      .resolve
+    invoice = Invoice.new(
+      organization: user.organization,
+      customer: customers(:customer_b),
+      number: "INV-TEST-OWNER-CROSS-CUSTOMER",
+      issue_date: Date.current
+    )
 
-    assert result.all? do |invoice|
-      invoice.organization_id == user.organization_id &&
-        invoice.customer.organization_id == user.organization_id &&
-        (!invoice.job || invoice.job.organization_id == user.organization_id) &&
-        (!invoice.quote || invoice.quote.organization_id == user.organization_id) &&
-        (!invoice.site || invoice.site.organization_id == user.organization_id)
-    end
+    assert_not InvoicePolicy.new(user, invoice).create?
   end
+
+  test "admin cannot create invoice with foreign job" do
+    user = users(:admin_a)
+
+    invoice = Invoice.new(
+      organization: user.organization,
+      customer: customers(:customer_a),
+      job: jobs(:job_b),
+      number: "INV-TEST-ADMIN-CROSS-JOB",
+      issue_date: Date.current
+    )
+
+    assert_not InvoicePolicy.new(user, invoice).create?
+  end
+
+  # ============================================================
+  # UPDATE
+  # ============================================================
+
+  test "owner can update invoice" do
+    user = users(:owner_a)
+    invoice = invoices(:invoice_a)
+
+    assert InvoicePolicy.new(user, invoice).update?
+  end
+
+  test "admin can update invoice" do
+    user = users(:admin_a)
+    invoice = invoices(:invoice_a)
+
+    assert InvoicePolicy.new(user, invoice).update?
+  end
+
+  test "manager can update invoice" do
+    user = users(:manager_a)
+    invoice = invoices(:invoice_a)
+
+    assert InvoicePolicy.new(user, invoice).update?
+  end
+
+  test "accountant can update invoice" do
+    user = users(:accountant_a)
+    invoice = invoices(:invoice_a)
+
+    assert InvoicePolicy.new(user, invoice).update?
+  end
+
+  test "member cannot update invoice" do
+    user = users(:member_a)
+    invoice = invoices(:invoice_a)
+
+    assert_not InvoicePolicy.new(user, invoice).update?
+  end
+
+  test "field worker cannot update invoice" do
+    user = users(:field_worker_a)
+    invoice = invoices(:invoice_a)
+
+    assert_not InvoicePolicy.new(user, invoice).update?
+  end
+
+  test "owner cannot update invoice from another organization" do
+    user = users(:owner_a)
+    invoice = invoices(:invoice_b)
+
+    assert_not InvoicePolicy.new(user, invoice).update?
+  end
+
+  test "admin cannot update invoice from another organization" do
+    user = users(:admin_a)
+    invoice = invoices(:invoice_b)
+
+    assert_not InvoicePolicy.new(user, invoice).update?
+  end
+
+  test "manager cannot update invoice from another organization" do
+    user = users(:manager_a)
+    invoice = invoices(:invoice_b)
+
+    assert_not InvoicePolicy.new(user, invoice).update?
+  end
+
+  test "accountant cannot update invoice from another organization" do
+    user = users(:accountant_a)
+    invoice = invoices(:invoice_b)
+
+    assert_not InvoicePolicy.new(user, invoice).update?
+  end
+
+  test "manager cannot update invoice with foreign customer" do
+    user = users(:manager_a)
+    invoice = invoices(:invoice_a)
+
+    invoice.customer = customers(:customer_b)
+
+    assert_not InvoicePolicy.new(user, invoice).update?
+  end
+
+  test "manager cannot update invoice with foreign job" do
+    user = users(:manager_a)
+    invoice = invoices(:invoice_a)
+
+    invoice.job = jobs(:job_b)
+
+    assert_not InvoicePolicy.new(user, invoice).update?
+  end
+
+  test "manager cannot update invoice with foreign quote" do
+    user = users(:manager_a)
+    invoice = invoices(:invoice_a)
+
+    invoice.quote = quotes(:quote_b)
+
+    assert_not InvoicePolicy.new(user, invoice).update?
+  end
+
+  test "manager cannot update invoice with foreign site" do
+    user = users(:manager_a)
+    invoice = invoices(:invoice_a)
+
+    invoice.site = sites(:site_b)
+
+    assert_not InvoicePolicy.new(user, invoice).update?
+  end
+
+  # ============================================================
+  # DESTROY
+  # ============================================================
+
+  test "owner can destroy invoice" do
+    user = users(:owner_a)
+    invoice = invoices(:invoice_a)
+
+    assert InvoicePolicy.new(user, invoice).destroy?
+  end
+
+  test "admin can destroy invoice" do
+    user = users(:admin_a)
+    invoice = invoices(:invoice_a)
+
+    assert InvoicePolicy.new(user, invoice).destroy?
+  end
+
+  test "manager cannot destroy invoice" do
+    user = users(:manager_a)
+    invoice = invoices(:invoice_a)
+
+    assert_not InvoicePolicy.new(user, invoice).destroy?
+  end
+
+  test "accountant cannot destroy invoice" do
+    user = users(:accountant_a)
+    invoice = invoices(:invoice_a)
+
+    assert_not InvoicePolicy.new(user, invoice).destroy?
+  end
+
+  test "field worker cannot destroy invoice" do
+    user = users(:field_worker_a)
+    invoice = invoices(:invoice_a)
+
+    assert_not InvoicePolicy.new(user, invoice).destroy?
+  end
+
+  test "member cannot destroy invoice" do
+    user = users(:member_a)
+    invoice = invoices(:invoice_a)
+
+    assert_not InvoicePolicy.new(user, invoice).destroy?
+  end
+
+  test "owner cannot destroy invoice from another organization" do
+    user = users(:owner_a)
+    invoice = invoices(:invoice_b)
+
+    assert_not InvoicePolicy.new(user, invoice).destroy?
+  end
+
+  test "admin cannot destroy invoice from another organization" do
+    user = users(:admin_a)
+    invoice = invoices(:invoice_b)
+
+    assert_not InvoicePolicy.new(user, invoice).destroy?
+  end
+
+  # ============================================================
+  # SCOPE
+  # ============================================================
+
+  test "scope excludes invoice with foreign customer" do
+  user = users(:member_a)
+  invoice = invoices(:invoice_a)
+
+  invoice.update_columns(
+    customer_id: customers(:customer_b).id
+  )
+
+  result = InvoicePolicy::Scope
+    .new(user, Invoice.all)
+    .resolve
+
+  assert_not_includes result, invoice
+end
+
+test "scope excludes invoice with foreign job" do
+  user = users(:member_a)
+  invoice = invoices(:invoice_a)
+
+  invoice.update_columns(
+    job_id: jobs(:job_b).id
+  )
+
+  result = InvoicePolicy::Scope
+    .new(user, Invoice.all)
+    .resolve
+
+  assert_not_includes result, invoice
+end
+
+test "scope excludes invoice with foreign quote" do
+  user = users(:member_a)
+  invoice = invoices(:invoice_a)
+
+  invoice.update_columns(
+    quote_id: quotes(:quote_b).id
+  )
+
+  result = InvoicePolicy::Scope
+    .new(user, Invoice.all)
+    .resolve
+
+  assert_not_includes result, invoice
+end
+
+test "scope excludes invoice with foreign site" do
+  user = users(:member_a)
+  invoice = invoices(:invoice_a)
+
+  invoice.update_columns(
+    site_id: sites(:site_b).id
+  )
+
+  result = InvoicePolicy::Scope
+    .new(user, Invoice.all)
+    .resolve
+
+  assert_not_includes result, invoice
+end
 end
