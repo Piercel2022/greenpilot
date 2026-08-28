@@ -23,7 +23,7 @@ class Job < ApplicationRecord
 
   has_many :job_reports,
            dependent: :destroy
-
+  has_many :invoices, dependent: :destroy
   # ============================================================
   # ENUMS / BUSINESS VALUES
   # ============================================================
