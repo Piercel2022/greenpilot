@@ -476,11 +476,4 @@ class ServiceCategoriesApiTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
-  private
-
-  def auth_headers(user)
-    {
-      "Authorization" => "Bearer #{JwtService.encode(user)}"
-    }
-  end
 end
