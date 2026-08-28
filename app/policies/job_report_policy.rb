@@ -8,7 +8,12 @@ class JobReportPolicy < ApplicationPolicy
   end
 
   def create?
-    same_organization? && management?
+    return false unless authenticated?
+    return false unless management?
+
+    return true if record.job.blank?
+
+    same_organization?
   end
 
   def update?
