@@ -1,0 +1,17 @@
+job_report_a:
+  organization: organization_a
+  job: job_a
+  summary: Rapport d'intervention A
+  work_performed: Entretien complet du jardin
+  observations: Jardin en bon état
+  recommendations: Prévoir une nouvelle intervention
+  generated_at: 2026-08-25 17:00:00
+
+job_report_b:
+  organization: organization_b
+  job: job_b
+  summary: Rapport d'intervention B
+  work_performed: Création de l'espace paysager
+  observations: Travaux réalisés
+  recommendations: Contrôle à prévoir
+  generated_at: 2026-08-26 18:00:00
