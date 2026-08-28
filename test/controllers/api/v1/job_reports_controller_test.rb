@@ -155,6 +155,15 @@ class Api::V1::JobReportsControllerTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
+  test "show returns not found for a nonexistent report" do
+    get "/api/v1/job_reports/00000000-0000-0000-0000-000000000000",
+        headers: {
+          "Authorization" => "Bearer #{@manager_token}"
+        }
+
+    assert_response :not_found
+  end
+
   test "manager can create a report" do
     assert_difference("JobReport.count", 1) do
       post "/api/v1/job_reports",
@@ -199,6 +208,49 @@ class Api::V1::JobReportsControllerTest < ActionDispatch::IntegrationTest
     assert_response :forbidden
   end
 
+  test "create returns unprocessable entity when job is missing" do
+    assert_no_difference("JobReport.count") do
+      post "/api/v1/job_reports",
+           params: {
+             job_report: {
+               summary: "Invalid report"
+             }
+           },
+           headers: {
+             "Authorization" => "Bearer #{@manager_token}"
+           }
+    end
+
+    assert_response :unprocessable_entity
+
+    body = JSON.parse(response.body)
+
+    assert_equal "Unprocessable Entity", body["error"]
+    assert body["messages"].any?
+  end
+
+  test "cannot create a report with a job from another organization" do
+    assert_no_difference("JobReport.count") do
+      post "/api/v1/job_reports",
+           params: {
+             job_report: {
+               job_id: @other_job.id,
+               summary: "Cross organization report"
+             }
+           },
+           headers: {
+             "Authorization" => "Bearer #{@manager_token}"
+           }
+    end
+
+    assert_response :unprocessable_entity
+
+    body = JSON.parse(response.body)
+
+    assert_equal "Unprocessable Entity", body["error"]
+    assert body["messages"].any?
+  end
+
   test "manager can update a report" do
     patch "/api/v1/job_reports/#{@report.id}",
           params: {
@@ -235,6 +287,41 @@ class Api::V1::JobReportsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Garden maintenance completed", @report.reload.summary
   end
 
+  test "cannot update a report to use a job from another organization" do
+    patch "/api/v1/job_reports/#{@report.id}",
+          params: {
+            job_report: {
+              job_id: @other_job.id
+            }
+          },
+          headers: {
+            "Authorization" => "Bearer #{@manager_token}"
+          }
+
+    assert_response :unprocessable_entity
+
+    body = JSON.parse(response.body)
+
+    assert_equal "Unprocessable Entity", body["error"]
+    assert body["messages"].any?
+
+    assert_equal @job.id, @report.reload.job_id
+  end
+
+  test "update returns not found for a nonexistent report" do
+    patch "/api/v1/job_reports/00000000-0000-0000-0000-000000000000",
+          params: {
+            job_report: {
+              summary: "Updated"
+            }
+          },
+          headers: {
+            "Authorization" => "Bearer #{@manager_token}"
+          }
+
+    assert_response :not_found
+  end
+
   test "owner can destroy a report" do
     assert_difference("JobReport.count", -1) do
       delete "/api/v1/job_reports/#{@report.id}",
@@ -268,36 +355,25 @@ class Api::V1::JobReportsControllerTest < ActionDispatch::IntegrationTest
     assert_response :forbidden
   end
 
-  test "cannot create a report with a job from another organization" do
-    assert_no_difference("JobReport.count") do
-      post "/api/v1/job_reports",
-           params: {
-             job_report: {
-               job_id: @other_job.id,
-               summary: "Cross organization report"
-             }
-           },
+  test "destroy returns not found for a nonexistent report" do
+    delete "/api/v1/job_reports/00000000-0000-0000-0000-000000000000",
            headers: {
-             "Authorization" => "Bearer #{@manager_token}"
+             "Authorization" => "Bearer #{@owner_token}"
            }
-    end
 
-    assert_response :forbidden
+    assert_response :not_found
   end
 
   test "cannot access a report with mismatched organization and job" do
-    invalid_report = JobReport.create!(
-      organization: @organization,
-      job: @other_job,
-      summary: "Invalid cross organization report"
-    )
-
-    get "/api/v1/job_reports/#{invalid_report.id}",
-        headers: {
-          "Authorization" => "Bearer #{@manager_token}"
-        }
-
-    assert_response :not_found
+    # Cette situation est désormais empêchée par la validation
+    # JobReport#job_belongs_to_organization.
+    assert_raises(ActiveRecord::RecordInvalid) do
+      JobReport.create!(
+        organization: @organization,
+        job: @other_job,
+        summary: "Invalid cross organization report"
+      )
+    end
   end
 
   private
