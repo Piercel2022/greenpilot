@@ -48,7 +48,7 @@ class QuotePolicy < ApplicationPolicy
     return false unless record.organization_id == user.organization_id
     return false unless record.customer.organization_id == user.organization_id
     return false unless record.site.organization_id == user.organization_id
-
+    return false unless record.site.customer_id == record.customer_id
     true
   end
 end
