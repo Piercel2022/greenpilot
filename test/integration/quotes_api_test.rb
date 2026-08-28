@@ -661,6 +661,45 @@ class QuotesApiTest < ActionDispatch::IntegrationTest
     assert_equal original_site_id, quote.reload.site_id
   end
 
+  test "update rejects site belonging to another customer in same organization" do
+    user = users(:manager_a)
+    quote = quotes(:quote_a)
+
+    other_customer = Customer.create!(
+      organization: organizations(:organization_a),
+      customer_type: :individual,
+      first_name: "Other",
+      last_name: "Customer"
+    )
+
+    other_site = Site.create!(
+      organization: organizations(:organization_a),
+      customer: other_customer,
+      name: "Other site"
+    )
+
+    original_site_id = quote.site_id
+
+    patch "/api/v1/quotes/#{quote.id}",
+        params: {
+          quote: {
+            site_id: other_site.id
+          }
+        },
+        headers: auth_headers(user),
+        as: :json
+
+    assert_response :unprocessable_entity
+
+    body = JSON.parse(response.body)
+
+    assert_equal "Unprocessable Entity", body["error"]
+    assert_includes body["messages"],
+                  "Site must belong to the selected customer"
+
+    assert_equal original_site_id, quote.reload.site_id
+  end
+
   # ============================================================
   # DELETE
   # ============================================================
@@ -739,13 +778,5 @@ class QuotesApiTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :not_found
-  end
-
-  private
-
-  def auth_headers(user)
-    {
-      "Authorization" => "Bearer #{JwtService.encode(user)}"
-    }
   end
 end
