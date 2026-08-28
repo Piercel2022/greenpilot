@@ -4,11 +4,22 @@ module Api
       before_action :set_job, only: %i[show update destroy]
 
       def index
+        Rails.logger.warn "=== JOB INDEX START ==="
+        Rails.logger.warn "ACTION: #{action_name}"
+        Rails.logger.warn "METHOD: #{request.request_method}"
+        Rails.logger.warn "PATH: #{request.path}"
+        Rails.logger.warn "QUERY: #{request.query_string}"
+        Rails.logger.warn "PARAMS: #{params.to_unsafe_h.inspect}"
+
         jobs = policy_scope(Job)
+
+        Rails.logger.warn "SCOPE: #{jobs.to_sql}"
 
         jobs = jobs.by_date(params[:date]) if params[:date].present?
         jobs = jobs.where(status: params[:status]) if params[:status].present?
         jobs = jobs.where(priority: params[:priority]) if params[:priority].present?
+
+        Rails.logger.warn "FINAL SQL: #{jobs.to_sql}"
 
         render json: jobs
       end
