@@ -23,6 +23,7 @@ class QuoteItem < ApplicationRecord
             }
 
   validate :service_item_belongs_to_quote_organization
+  validate :quote_belongs_to_organization
 
   scope :ordered, -> { order(:position) }
 
@@ -35,6 +36,17 @@ class QuoteItem < ApplicationRecord
       errors.add(
         :service_item,
         "must belong to the same organization as the quote"
+      )
+    end
+  end
+
+  def quote_belongs_to_organization
+    return if quote.blank? || service_item.blank?
+
+    if quote.organization_id != service_item.organization_id
+      errors.add(
+        :quote,
+        "must belong to the same organization"
       )
     end
   end
