@@ -51,6 +51,9 @@ class JobTimeEntryPolicy < ApplicationPolicy
                 job_assignments: {
                   user_id: user.id,
                   active: true
+                },
+                job_time_entries: {
+                  user_id: user.id
                 }
               )
           else
