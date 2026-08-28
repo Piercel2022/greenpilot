@@ -56,7 +56,7 @@ module Api
       private
 
       def set_job_time_entry
-        @job_time_entry = policy_scope(JobTimeEntry).find(params[:id])
+        @job_time_entry = current_user.organization.job_time_entries.find(params[:id])
       rescue ActiveRecord::RecordNotFound
         render json: {
           error: "Not Found",
