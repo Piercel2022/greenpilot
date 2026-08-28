@@ -1,3 +1,4 @@
+
 module Api
   module V1
     class JobReportsController < BaseController
@@ -16,28 +17,21 @@ module Api
       end
 
       def create
-         job_report = current_user.organization.job_reports.new(
-        job_report_params
-       )
+        job_report = current_user.organization.job_reports.new(
+          job_report_params
+        )
 
-       if job_report.invalid?
-       return render json: {
-       error: "Unprocessable Entity",
-       messages: job_report.errors.full_messages
-       }, status: :unprocessable_entity
+        authorize job_report
+
+        if job_report.save
+          render json: job_report, status: :created
+        else
+          render json: {
+            error: "Unprocessable Entity",
+            messages: job_report.errors.full_messages
+          }, status: :unprocessable_entity
+        end
       end
-
-      authorize job_report
-
-     if job_report.save
-      render json: job_report, status: :created
-     else
-    render json: {
-      error: "Unprocessable Entity",
-      messages: job_report.errors.full_messages
-    }, status: :unprocessable_entity
-     end
-    end
 
       def update
         authorize @job_report
