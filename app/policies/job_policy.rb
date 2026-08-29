@@ -11,6 +11,10 @@ class JobPolicy < ApplicationPolicy
     same_organization? && management?
   end
 
+  def create_base?
+    authenticated? && management?
+  end
+
   def update?
     return false unless same_organization?
 

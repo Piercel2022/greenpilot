@@ -33,8 +33,7 @@ module Api
       def create
         job = current_user.organization.jobs.new(job_params)
 
-        authorize job
-
+        authorize job, :create_base?
         if job.save
           render json: job, status: :created
         else
