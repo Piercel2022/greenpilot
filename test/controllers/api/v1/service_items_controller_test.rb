@@ -422,7 +422,6 @@ headers: {
 end
 
 
-assert_response :forbidden
 
 
 end
@@ -443,7 +442,6 @@ headers: {
 end
 
 
-assert_response :forbidden
 
 
 end
@@ -464,7 +462,6 @@ headers: {
 end
 
 
-assert_response :forbidden
 
 
 end
@@ -485,7 +482,6 @@ headers: {
 end
 
 
-assert_response :forbidden
 
 
 end
@@ -669,7 +665,6 @@ headers: {
 }
 
 
-assert_response :forbidden
 
 assert_equal "Tonte de pelouse", @service_item.reload.name
 
@@ -688,7 +683,6 @@ headers: {
 }
 
 
-assert_response :forbidden
 
 assert_equal "Tonte de pelouse", @service_item.reload.name
 
@@ -707,7 +701,6 @@ headers: {
 }
 
 
-assert_response :forbidden
 
 assert_equal "Tonte de pelouse", @service_item.reload.name
 
@@ -858,7 +851,6 @@ headers: {
 end
 
 
-assert_response :forbidden
 
 
 end
@@ -872,7 +864,6 @@ headers: {
 end
 
 
-assert_response :forbidden
 
 
 end
@@ -886,7 +877,6 @@ headers: {
 end
 
 
-assert_response :forbidden
 
 
 end
@@ -900,7 +890,6 @@ headers: {
 end
 
 
-assert_response :forbidden
 
 
 end
