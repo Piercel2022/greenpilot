@@ -3,6 +3,7 @@ require "test_helper"
 class ServiceItemTest < ActiveSupport::TestCase
   setup do
     @organization = Organization.create!(name: "GreenPilot Item Test", slug: "greenpilot-item-test")
+
     @category = ServiceCategory.create!(
       organization: @organization,
       code: "ENT",
@@ -48,6 +49,71 @@ class ServiceItemTest < ActiveSupport::TestCase
 
     refute duplicate.valid?
     assert duplicate.errors[:code].any?
+  end
+
+  test "same code is allowed in another organization" do
+    other_organization = Organization.create!(
+      name: "Other Item Organization",
+      slug: "other-item-organization"
+    )
+
+    other_category = ServiceCategory.create!(
+      organization: other_organization,
+      code: "ENT",
+      name: "Entretien"
+    )
+
+    ServiceItem.create!(
+      organization: @organization,
+      service_category: @category,
+      code: "TONTE",
+      name: "Tonte"
+    )
+
+    item = ServiceItem.new(
+      organization: other_organization,
+      service_category: other_category,
+      code: "TONTE",
+      name: "Tonte autre organisation"
+    )
+
+    assert item.valid?
+  end
+
+  test "service category must belong to the same organization" do
+    other_organization = Organization.create!(
+      name: "Other Item Organization",
+      slug: "other-item-organization"
+    )
+
+    other_category = ServiceCategory.create!(
+      organization: other_organization,
+      code: "OTH",
+      name: "Other"
+    )
+
+    item = ServiceItem.new(
+      organization: @organization,
+      service_category: other_category,
+      code: "CROSS",
+      name: "Cross organization item"
+    )
+
+    refute item.valid?
+
+    assert_includes item.errors[:service_category],
+                     "must belong to the same organization"
+  end
+
+  test "service category from same organization is allowed" do
+    item = ServiceItem.new(
+      organization: @organization,
+      service_category: @category,
+      code: "VALID",
+      name: "Valid item"
+    )
+
+    assert item.valid?
   end
 
   test "ordered scope sorts by position then name" do
