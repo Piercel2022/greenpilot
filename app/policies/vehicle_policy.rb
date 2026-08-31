@@ -8,7 +8,7 @@ class VehiclePolicy < ApplicationPolicy
   end
 
   def create?
-    management?
+    same_organization? && management?
   end
 
   def update?
