@@ -186,4 +186,34 @@ class ServiceItemPolicyTest < ActiveSupport::TestCase
         item.service_category.organization_id == user.organization_id
     end
   end
+
+  test "cannot update service item with foreign service category" do
+    user = users(:manager_a)
+
+    item = service_items(:item_a)
+    item.service_category = service_categories(:category_b)
+
+    assert_not ServiceItemPolicy.new(user, item).update?
+  end
+
+  test "cannot destroy service item with foreign service category" do
+    user = users(:owner_a)
+
+    item = service_items(:item_a)
+    item.service_category = service_categories(:category_b)
+
+    assert_not ServiceItemPolicy.new(user, item).destroy?
+  end
+
+  test "scope excludes service items from another organization" do
+    user = users(:member_a)
+
+    all_items = ServiceItem.all
+    result = ServiceItemPolicy::Scope
+      .new(user, all_items)
+      .resolve
+
+    assert_includes all_items, service_items(:item_b)
+    assert_not_includes result, service_items(:item_b)
+  end
 end
