@@ -4,32 +4,53 @@ class JobTimeEntryPolicy < ApplicationPolicy
   end
 
   def show?
-    same_organization? && accessible?
+    return false unless authenticated?
+    return false unless same_organization?
+
+    if management?
+      true
+    elsif field_worker?
+      own_entry? && actively_assigned?
+    else
+      false
+    end
   end
 
   def create?
+    return false unless authenticated?
     return false unless same_organization?
 
-    management? || assigned_to_job?
+    if management?
+      true
+    elsif field_worker?
+      own_entry? && actively_assigned?
+    else
+      false
+    end
   end
 
   def update?
+    return false unless authenticated?
     return false unless same_organization?
 
-    management? || own_entry_and_assigned_to_job?
+    if management?
+      true
+    elsif field_worker?
+      own_entry? && actively_assigned?
+    else
+      false
+    end
   end
 
   def destroy?
-    return false unless same_organization?
-
-    management?
+    same_organization? && management?
   end
 
   class Scope < ApplicationPolicy::Scope
     def resolve
-      scope
-        .joins(:job)
-        .joins(:user)
+      base_scope =
+        scope
+        .joins(:job, :user)
         .where(
           job_time_entries: {
             organization_id: user.organization_id
@@ -41,25 +62,28 @@ class JobTimeEntryPolicy < ApplicationPolicy
             organization_id: user.organization_id
           }
         )
-        .then do |relation|
-          if user.field_worker?
-            relation
-              .joins(
-                "INNER JOIN job_assignments ON job_assignments.job_id = job_time_entries.job_id"
-              )
-              .where(
-                job_assignments: {
-                  user_id: user.id,
-                  active: true
-                },
-                job_time_entries: {
-                  user_id: user.id
-                }
-              )
-          else
-            relation
-          end
-        end
+
+      if user.owner? || user.admin? || user.manager?
+        base_scope
+      elsif user.field_worker?
+        base_scope
+          .joins(
+            "INNER JOIN job_assignments
+             ON job_assignments.job_id = job_time_entries.job_id
+             AND job_assignments.user_id = job_time_entries.user_id
+             AND job_assignments.active = TRUE"
+          )
+          .where(
+            job_time_entries: {
+              user_id: user.id
+            },
+            job_assignments: {
+              organization_id: user.organization_id
+            }
+          )
+      else
+        scope.none
+      end
     end
   end
 
@@ -76,19 +100,18 @@ class JobTimeEntryPolicy < ApplicationPolicy
       record.user.organization_id == user.organization_id
   end
 
-  def accessible?
-    management? || own_entry_and_assigned_to_job?
+  def own_entry?
+    record.user_id == user.id
   end
 
-  def assigned_to_job?
-    record.job.job_assignments.exists?(
+  def actively_assigned?
+    return false unless record.job
+
+    JobAssignment.exists?(
+      organization_id: user.organization_id,
+      job_id: record.job_id,
       user_id: user.id,
       active: true
     )
-  end
-
-  def own_entry_and_assigned_to_job?
-    record.user_id == user.id &&
-      assigned_to_job?
   end
 end
