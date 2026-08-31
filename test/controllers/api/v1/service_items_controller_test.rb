@@ -419,6 +419,7 @@ name: "Unauthorized Accountant Item"
 headers: {
 "Authorization" => "Bearer #{@accountant_token}"
 }
+    assert_response :forbidden
 end
 
 
@@ -439,6 +440,7 @@ name: "Unauthorized Field Worker Item"
 headers: {
 "Authorization" => "Bearer #{@field_worker_token}"
 }
+    assert_response :forbidden
 end
 
 
@@ -459,6 +461,7 @@ name: "Unauthorized Member Item"
 headers: {
 "Authorization" => "Bearer #{@member_token}"
 }
+    assert_response :forbidden
 end
 
 
@@ -479,6 +482,7 @@ name: "Invalid Service Item"
 headers: {
 "Authorization" => "Bearer #{@manager_token}"
 }
+    assert_response :forbidden
 end
 
 
@@ -669,6 +673,7 @@ headers: {
 assert_equal "Tonte de pelouse", @service_item.reload.name
 
 
+    assert_response :forbidden
 end
 
 test "field worker cannot update service item" do
@@ -687,6 +692,7 @@ headers: {
 assert_equal "Tonte de pelouse", @service_item.reload.name
 
 
+    assert_response :forbidden
 end
 
 test "member cannot update service item" do
@@ -705,6 +711,7 @@ headers: {
 assert_equal "Tonte de pelouse", @service_item.reload.name
 
 
+    assert_response :forbidden
 end
 
 test "manager cannot update service item from another organization" do
@@ -848,6 +855,7 @@ delete "/api/v1/service_items/#{@service_item.id}",
 headers: {
 "Authorization" => "Bearer #{@manager_token}"
 }
+    assert_response :forbidden
 end
 
 
@@ -861,6 +869,7 @@ delete "/api/v1/service_items/#{@service_item.id}",
 headers: {
 "Authorization" => "Bearer #{@accountant_token}"
 }
+    assert_response :forbidden
 end
 
 
@@ -874,6 +883,7 @@ delete "/api/v1/service_items/#{@service_item.id}",
 headers: {
 "Authorization" => "Bearer #{@field_worker_token}"
 }
+    assert_response :forbidden
 end
 
 
@@ -887,6 +897,7 @@ delete "/api/v1/service_items/#{@service_item.id}",
 headers: {
 "Authorization" => "Bearer #{@member_token}"
 }
+    assert_response :forbidden
 end
 
 
