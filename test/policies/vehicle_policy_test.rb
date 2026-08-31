@@ -153,4 +153,16 @@ class VehiclePolicyTest < ActiveSupport::TestCase
       vehicle.organization_id == user.organization_id
     end
   end
+
+  test "manager cannot create vehicle for another organization" do
+    user = users(:manager_a)
+
+    vehicle = Vehicle.new(
+      organization: organizations(:organization_b),
+      name: "Foreign Organization Vehicle",
+      registration_number: "FOREIGN-001"
+    )
+
+    assert_not VehiclePolicy.new(user, vehicle).create?
+  end
 end
