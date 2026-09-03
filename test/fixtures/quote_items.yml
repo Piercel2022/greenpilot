@@ -39,3 +39,24 @@ quote_item_b:
   margin_percentage: 44.00
   estimated_duration_minutes: 480
   position: 1
+
+quote_item_c:
+  quote: quote_c
+  service_item: item_c
+  description: Aménagement paysager résidentiel
+  quantity: 100.000
+  unit: m2
+  unit_price: 30.00
+  discount_percentage: 0.00
+  tax_rate: 20.00
+  subtotal: 3000.00
+  tax_amount: 600.00
+  total_amount: 3600.00
+  labor_cost: 600.00
+  material_cost: 1000.00
+  equipment_cost: 200.00
+  estimated_cost: 1800.00
+  margin_amount: 1200.00
+  margin_percentage: 40.00
+  estimated_duration_minutes: 600
+  position: 1
