@@ -15,3 +15,12 @@ category_b:
   description: Création et aménagement des espaces verts
   position: 1
   active: true
+
+category_c:
+  organization: organization_c
+  code: AME
+  name: Aménagement
+  category_type: creation
+  description: Aménagement et valorisation des espaces paysagers
+  position: 1
+  active: true
