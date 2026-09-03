@@ -21,45 +21,13 @@ class QuoteItemPolicyTest < ActiveSupport::TestCase
     assert_not QuoteItemPolicy.new(user, item).show?
   end
 
-  test "owner can create quote item" do
-    user = users(:owner_a)
-
-    item = QuoteItem.new(
-      quote: quotes(:quote_a),
-      service_item: service_items(:item_a),
-      description: "Nouvelle prestation",
-      quantity: 10,
-      unit: "unit",
-      unit_price: 100
-    )
-
-    assert QuoteItemPolicy.new(user, item).create?
-  end
-
-  test "admin can create quote item" do
-    user = users(:admin_a)
-
-    item = QuoteItem.new(
-      quote: quotes(:quote_a),
-      service_item: service_items(:item_a),
-      description: "Nouvelle prestation",
-      quantity: 10,
-      unit: "unit",
-      unit_price: 100
-    )
-
-    assert QuoteItemPolicy.new(user, item).create?
-  end
-
-  test "manager can create quote item" do
+  test "manager can create quote item for same organization" do
     user = users(:manager_a)
 
     item = QuoteItem.new(
       quote: quotes(:quote_a),
       service_item: service_items(:item_a),
-      description: "Nouvelle prestation",
-      quantity: 10,
-      unit: "unit",
+      quantity: 1,
       unit_price: 100
     )
 
@@ -72,9 +40,7 @@ class QuoteItemPolicyTest < ActiveSupport::TestCase
     item = QuoteItem.new(
       quote: quotes(:quote_a),
       service_item: service_items(:item_a),
-      description: "Nouvelle prestation",
-      quantity: 10,
-      unit: "unit",
+      quantity: 1,
       unit_price: 100
     )
 
@@ -87,9 +53,7 @@ class QuoteItemPolicyTest < ActiveSupport::TestCase
     item = QuoteItem.new(
       quote: quotes(:quote_a),
       service_item: service_items(:item_a),
-      description: "Nouvelle prestation",
-      quantity: 10,
-      unit: "unit",
+      quantity: 1,
       unit_price: 100
     )
 
@@ -102,9 +66,7 @@ class QuoteItemPolicyTest < ActiveSupport::TestCase
     item = QuoteItem.new(
       quote: quotes(:quote_a),
       service_item: service_items(:item_a),
-      description: "Nouvelle prestation",
-      quantity: 10,
-      unit: "unit",
+      quantity: 1,
       unit_price: 100
     )
 
@@ -160,49 +122,57 @@ class QuoteItemPolicyTest < ActiveSupport::TestCase
     assert_not QuoteItemPolicy.new(user, item).destroy?
   end
 
-  test "manager cannot create quote item with foreign quote" do
-    user = users(:manager_a)
-
-    item = QuoteItem.new(
-      quote: quotes(:quote_b),
-      service_item: service_items(:item_a),
-      description: "Cross organization",
-      quantity: 1,
-      unit: "unit",
-      unit_price: 100
-    )
-
-    assert_not QuoteItemPolicy.new(user, item).create?
-  end
-
   test "manager cannot create quote item with foreign service item" do
     user = users(:manager_a)
 
     item = QuoteItem.new(
       quote: quotes(:quote_a),
       service_item: service_items(:item_b),
-      description: "Cross organization",
       quantity: 1,
-      unit: "unit",
       unit_price: 100
     )
 
     assert_not QuoteItemPolicy.new(user, item).create?
   end
 
-  test "manager cannot create quote item with foreign quote and foreign service item" do
+  test "manager cannot create quote item with foreign quote" do
     user = users(:manager_a)
 
     item = QuoteItem.new(
       quote: quotes(:quote_b),
-      service_item: service_items(:item_b),
-      description: "Cross organization",
+      service_item: service_items(:item_a),
       quantity: 1,
-      unit: "unit",
       unit_price: 100
     )
 
     assert_not QuoteItemPolicy.new(user, item).create?
+  end
+
+  test "manager cannot update quote item with foreign service item" do
+    user = users(:manager_a)
+    item = quote_items(:quote_item_a)
+
+    item.service_item = service_items(:item_b)
+
+    assert_not QuoteItemPolicy.new(user, item).update?
+  end
+
+  test "manager cannot update quote item with foreign quote" do
+    user = users(:manager_a)
+    item = quote_items(:quote_item_a)
+
+    item.quote = quotes(:quote_b)
+
+    assert_not QuoteItemPolicy.new(user, item).update?
+  end
+
+  test "owner cannot destroy quote item with foreign service item" do
+    user = users(:owner_a)
+    item = quote_items(:quote_item_a)
+
+    item.service_item = service_items(:item_b)
+
+    assert_not QuoteItemPolicy.new(user, item).destroy?
   end
 
   test "scope returns only quote items from user's organization" do
@@ -216,5 +186,18 @@ class QuoteItemPolicyTest < ActiveSupport::TestCase
       item.quote.organization_id == user.organization_id &&
         item.service_item.organization_id == user.organization_id
     end
+  end
+
+  test "scope excludes quote items from another organization" do
+    user = users(:member_a)
+
+    all_items = QuoteItem.all
+
+    result = QuoteItemPolicy::Scope
+      .new(user, all_items)
+      .resolve
+
+    assert_includes all_items, quote_items(:quote_item_b)
+    assert_not_includes result, quote_items(:quote_item_b)
   end
 end
