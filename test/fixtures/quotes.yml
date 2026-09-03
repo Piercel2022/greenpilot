@@ -33,3 +33,21 @@ quote_b:
   estimated_cost: 3200.00
   estimated_margin_amount: 1800.00
   estimated_margin_percentage: 36.00
+
+quote_c:
+  organization: organization_c
+  customer: customer_c
+  site: site_c
+  number: DEV-C-0001
+  title: Aménagement paysager résidentiel
+  description: Proposition pour l'aménagement paysager du site
+  issue_date: 2026-08-01
+  valid_until: 2026-08-31
+  status: draft
+  subtotal: 3000.00
+  discount_amount: 0.00
+  tax_amount: 600.00
+  total_amount: 3600.00
+  estimated_cost: 1800.00
+  estimated_margin_amount: 1200.00
+  estimated_margin_percentage: 40.00
