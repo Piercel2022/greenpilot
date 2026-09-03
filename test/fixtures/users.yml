@@ -1,13 +1,30 @@
-# test/fixtures/users.yml
-
 owner_a:
   organization: organization_a
   first_name: Alice
-  last_name: Owner
+  last_name: OwnerA
   email: owner.a@example.test
   role: owner
   active: true
   password_digest: $2a$12$y/Jqg7kdElEQYzl.Fm4Wn.BFG70ysMySoDdFjjWIBBmKPnwXJNlj2
+
+owner_b:
+  organization: organization_b
+  first_name: Bruno
+  last_name: OwnerB
+  email: owner.b@example.test
+  role: owner
+  active: true
+  password_digest: $2a$12$y/Jqg7kdElEQYzl.Fm4Wn.BFG70ysMySoDdFjjWIBBmKPnwXJNlj2
+
+owner_c:
+  organization: organization_c
+  first_name: Carla
+  last_name: OwnerC
+  email: owner.c@example.test
+  role: owner
+  active: true
+  password_digest: $2a$12$y/Jqg7kdElEQYzl.Fm4Wn.BFG70ysMySoDdFjjWIBBmKPnwXJNlj2
+
 admin_a:
   organization: organization_a
   first_name: Bob
@@ -16,6 +33,7 @@ admin_a:
   role: admin
   active: true
   password_digest: $2a$12$y/Jqg7kdElEQYzl.Fm4Wn.BFG70ysMySoDdFjjWIBBmKPnwXJNlj2
+
 manager_a:
   organization: organization_a
   first_name: Claire
@@ -24,6 +42,7 @@ manager_a:
   role: manager
   active: true
   password_digest: $2a$12$y/Jqg7kdElEQYzl.Fm4Wn.BFG70ysMySoDdFjjWIBBmKPnwXJNlj2
+
 accountant_a:
   organization: organization_a
   first_name: David
@@ -32,6 +51,7 @@ accountant_a:
   role: accountant
   active: true
   password_digest: $2a$12$y/Jqg7kdElEQYzl.Fm4Wn.BFG70ysMySoDdFjjWIBBmKPnwXJNlj2
+
 field_worker_a:
   organization: organization_a
   first_name: Emma
@@ -40,6 +60,7 @@ field_worker_a:
   role: field_worker
   active: true
   password_digest: $2a$12$y/Jqg7kdElEQYzl.Fm4Wn.BFG70ysMySoDdFjjWIBBmKPnwXJNlj2
+
 member_a:
   organization: organization_a
   first_name: Frank
@@ -48,6 +69,7 @@ member_a:
   role: member
   active: true
   password_digest: $2a$12$y/Jqg7kdElEQYzl.Fm4Wn.BFG70ysMySoDdFjjWIBBmKPnwXJNlj2
+
 member_b:
   organization: organization_b
   first_name: Grace
@@ -56,6 +78,7 @@ member_b:
   role: member
   active: true
   password_digest: $2a$12$y/Jqg7kdElEQYzl.Fm4Wn.BFG70ysMySoDdFjjWIBBmKPnwXJNlj2
+
 field_worker_b:
   organization: organization_b
   first_name: Henry
