@@ -328,4 +328,57 @@ class Api::V1::QuoteItemsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :unprocessable_entity
   end
+test "GET /quote_items does not expose quote items from another organization" do
+  owner_b = users(:owner_b)
+
+  get api_v1_quote_items_path,
+      headers: auth_headers(owner_b),
+      as: :json
+
+  assert_response :success
+
+  body = JSON.parse(response.body)
+
+  refute body.any? { |item| item["id"] == quote_items(:quote_item_a).id }
+  assert body.any? { |item| item["id"] == quote_items(:quote_item_b).id }
+end
+
+test "PATCH /quote_items cannot modify quote item from another organization" do
+  owner_b = users(:owner_b)
+  quote_item_a = quote_items(:quote_item_a)
+
+  patch api_v1_quote_item_path(quote_item_a),
+        params: {
+          quote_item: {
+            description: "Hacked item"
+          }
+        },
+        headers: auth_headers(owner_b),
+        as: :json
+
+  assert_response :not_found
+
+  quote_item_a.reload
+  refute_equal "Hacked item", quote_item_a.description
+end
+
+test "manager cannot update quote item to quote from another organization" do
+  patch "/api/v1/quote_items/#{@quote_item.id}",
+        params: {
+          quote_item: {
+            quote_id: @other_quote.id
+          }
+        },
+        headers: {
+          "Authorization" => "Bearer #{@token}"
+        }
+
+  assert_response :unprocessable_entity
+
+  body = JSON.parse(response.body)
+
+  assert_includes body["messages"], "Quote must belong to the same organization"
+  assert_equal @quote.id, @quote_item.reload.quote_id
+end
+  
 end
