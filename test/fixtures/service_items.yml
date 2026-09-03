@@ -33,3 +33,21 @@ item_b:
   estimated_duration_minutes: 480
   position: 1
   active: true
+
+item_c:
+  organization: organization_c
+  service_category: category_c
+  code: AME
+  name: Aménagement paysager
+  description: Aménagement et valorisation des espaces paysagers
+  unit: m2
+  default_quantity: 100.000
+  default_unit_price: 30.00
+  default_margin_percentage: 40.00
+  labor_cost: 600.00
+  material_cost: 1000.00
+  equipment_cost: 200.00
+  overhead_cost: 150.00
+  estimated_duration_minutes: 600
+  position: 1
+  active: true
