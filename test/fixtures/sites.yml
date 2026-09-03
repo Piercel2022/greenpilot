@@ -7,3 +7,8 @@ site_b:
   organization: organization_b
   customer: customer_b
   name: Parc paysager
+
+site_c:
+  organization: organization_c
+  customer: customer_c
+  name: Jardin résidentiel
