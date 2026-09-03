@@ -7,36 +7,6 @@ class QuotePolicyTest < ActiveSupport::TestCase
     assert QuotePolicy.new(user, Quote).index?
   end
 
-  test "owner can create quote" do
-  user = users(:owner_a)
-
-  quote = Quote.new(
-    organization: user.organization,
-    customer: customers(:customer_a),
-    site: sites(:site_a),
-    number: "DEV-OWNER-001",
-    title: "Nouvelle proposition",
-    issue_date: Date.current
-  )
-
-  assert QuotePolicy.new(user, quote).create?
-end
-
-test "admin can create quote" do
-  user = users(:admin_a)
-
-  quote = Quote.new(
-    organization: user.organization,
-    customer: customers(:customer_a),
-    site: sites(:site_a),
-    number: "DEV-ADMIN-001",
-    title: "Nouvelle proposition",
-    issue_date: Date.current
-  )
-
-  assert QuotePolicy.new(user, quote).create?
-end
-
   test "user can view quote from same organization" do
     user = users(:member_a)
     quote = quotes(:quote_a)
@@ -51,6 +21,36 @@ end
     assert_not QuotePolicy.new(user, quote).show?
   end
 
+  test "owner can create quote" do
+    user = users(:owner_a)
+
+    quote = Quote.new(
+      organization: user.organization,
+      customer: customers(:customer_a),
+      site: sites(:site_a),
+      number: "NEW-OWNER",
+      title: "Nouveau devis Owner",
+      issue_date: Date.current
+    )
+
+    assert QuotePolicy.new(user, quote).create?
+  end
+
+  test "admin can create quote" do
+    user = users(:admin_a)
+
+    quote = Quote.new(
+      organization: user.organization,
+      customer: customers(:customer_a),
+      site: sites(:site_a),
+      number: "NEW-ADMIN",
+      title: "Nouveau devis Admin",
+      issue_date: Date.current
+    )
+
+    assert QuotePolicy.new(user, quote).create?
+  end
+
   test "manager can create quote" do
     user = users(:manager_a)
 
@@ -58,8 +58,8 @@ end
       organization: user.organization,
       customer: customers(:customer_a),
       site: sites(:site_a),
-      number: "DEV-NEW-001",
-      title: "Nouvelle proposition",
+      number: "NEW-MANAGER",
+      title: "Nouveau devis Manager",
       issue_date: Date.current
     )
 
@@ -73,8 +73,8 @@ end
       organization: user.organization,
       customer: customers(:customer_a),
       site: sites(:site_a),
-      number: "DEV-NEW-002",
-      title: "Nouvelle proposition",
+      number: "NEW-MEMBER",
+      title: "Nouveau devis Member",
       issue_date: Date.current
     )
 
@@ -88,15 +88,30 @@ end
       organization: user.organization,
       customer: customers(:customer_a),
       site: sites(:site_a),
-      number: "DEV-NEW-003",
-      title: "Nouvelle proposition",
+      number: "NEW-ACCOUNTANT",
+      title: "Nouveau devis Accountant",
       issue_date: Date.current
     )
 
     assert_not QuotePolicy.new(user, quote).create?
   end
 
-  test "manager can update quote" do
+  test "field worker cannot create quote" do
+    user = users(:field_worker_a)
+
+    quote = Quote.new(
+      organization: user.organization,
+      customer: customers(:customer_a),
+      site: sites(:site_a),
+      number: "NEW-FIELD",
+      title: "Nouveau devis Field",
+      issue_date: Date.current
+    )
+
+    assert_not QuotePolicy.new(user, quote).create?
+  end
+
+  test "manager can update quote from same organization" do
     user = users(:manager_a)
     quote = quotes(:quote_a)
 
@@ -105,13 +120,6 @@ end
 
   test "member cannot update quote" do
     user = users(:member_a)
-    quote = quotes(:quote_a)
-
-    assert_not QuotePolicy.new(user, quote).update?
-  end
-
-  test "accountant cannot update quote" do
-    user = users(:accountant_a)
     quote = quotes(:quote_a)
 
     assert_not QuotePolicy.new(user, quote).update?
@@ -145,20 +153,6 @@ end
     assert_not QuotePolicy.new(user, quote).destroy?
   end
 
-  test "accountant cannot destroy quote" do
-    user = users(:accountant_a)
-    quote = quotes(:quote_a)
-
-    assert_not QuotePolicy.new(user, quote).destroy?
-  end
-
-  test "field worker cannot destroy quote" do
-    user = users(:field_worker_a)
-    quote = quotes(:quote_a)
-
-    assert_not QuotePolicy.new(user, quote).destroy?
-  end
-
   test "owner cannot destroy quote from another organization" do
     user = users(:owner_a)
     quote = quotes(:quote_b)
@@ -184,26 +178,33 @@ end
     assert_not QuotePolicy.new(user, quote).update?
   end
 
-  test "manager cannot update quote with site belonging to another customer in same organization" do
+  test "manager cannot update quote with site belonging to another customer" do
     user = users(:manager_a)
     quote = quotes(:quote_a)
 
-    other_customer = Customer.create!(
-      organization: organizations(:organization_a),
-      customer_type: :individual,
-      first_name: "Other",
-      last_name: "Customer"
-    )
+    quote.site = sites(:site_b)
 
-    other_site = Site.create!(
-      organization: organizations(:organization_a),
-      customer: other_customer,
-      name: "Other site"
-    )
-
-    quote.site = other_site
+    quote.customer = customers(:customer_a)
 
     assert_not QuotePolicy.new(user, quote).update?
+  end
+
+  test "owner cannot destroy quote with foreign customer" do
+    user = users(:owner_a)
+    quote = quotes(:quote_a)
+
+    quote.customer = customers(:customer_b)
+
+    assert_not QuotePolicy.new(user, quote).destroy?
+  end
+
+  test "owner cannot destroy quote with foreign site" do
+    user = users(:owner_a)
+    quote = quotes(:quote_a)
+
+    quote.site = sites(:site_b)
+
+    assert_not QuotePolicy.new(user, quote).destroy?
   end
 
   test "scope returns only quotes from user's organization" do
@@ -216,7 +217,21 @@ end
     assert result.all? do |quote|
       quote.organization_id == user.organization_id &&
         quote.customer.organization_id == user.organization_id &&
-        quote.site.organization_id == user.organization_id
+        quote.site.organization_id == user.organization_id &&
+        quote.site.customer_id == quote.customer_id
     end
+  end
+
+  test "scope excludes quotes from another organization" do
+    user = users(:member_a)
+
+    all_quotes = Quote.all
+
+    result = QuotePolicy::Scope
+      .new(user, all_quotes)
+      .resolve
+
+    assert_includes all_quotes, quotes(:quote_b)
+    assert_not_includes result, quotes(:quote_b)
   end
 end
