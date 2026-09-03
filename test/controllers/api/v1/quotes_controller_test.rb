@@ -853,4 +853,35 @@ end
 
     assert_response :not_found
   end
+test "POST /quotes cannot inject organization_id from another organization" do
+  assert_difference("Quote.count", 1) do
+    post "/api/v1/quotes",
+         params: {
+           quote: {
+             organization_id: @other_organization.id,
+             customer_id: @customer.id,
+             site_id: @site.id,
+             number: "DEV-ATTACK-ORG",
+             title: "Malicious quote",
+             issue_date: Date.current
+           }
+         },
+         headers: {
+           "Authorization" => "Bearer #{@manager_token}"
+         }
+  end
+
+  assert_response :created
+
+  body = JSON.parse(response.body)
+
+  created_quote = Quote.find(body["id"])
+
+  assert_equal @organization.id, created_quote.organization_id
+  assert_not_equal @other_organization.id, created_quote.organization_id
+
+  assert_equal @customer.id, created_quote.customer_id
+  assert_equal @site.id, created_quote.site_id
+end
+  
 end
