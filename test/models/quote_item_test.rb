@@ -1,8 +1,12 @@
+
 require "test_helper"
 
 class QuoteItemTest < ActiveSupport::TestCase
   setup do
-    @organization = Organization.create!(name: "GreenPilot Quote Item Test", slug: "greenpilot-quote-item-test")
+    @organization = Organization.create!(
+      name: "GreenPilot Quote Item Test",
+      slug: "greenpilot-quote-item-test"
+    )
 
     @customer = Customer.create!(
       organization: @organization,
@@ -51,6 +55,7 @@ class QuoteItemTest < ActiveSupport::TestCase
     )
 
     refute item.valid?
+
     assert item.errors[:description].any?
   end
 
@@ -63,6 +68,7 @@ class QuoteItemTest < ActiveSupport::TestCase
     )
 
     refute item.valid?
+
     assert item.errors[:quantity].any?
   end
 
@@ -75,10 +81,11 @@ class QuoteItemTest < ActiveSupport::TestCase
     )
 
     refute item.valid?
+
     assert item.errors[:discount_percentage].any?
   end
 
-  test "rejects service item from another organization" do
+  test "rejects quote and service item from different organizations" do
     item = QuoteItem.new(
       quote: quotes(:quote_a),
       service_item: service_items(:item_b),
@@ -88,10 +95,13 @@ class QuoteItemTest < ActiveSupport::TestCase
       unit_price: 100
     )
 
-    assert_not item.valid?
+    refute item.valid?
 
     assert_includes item.errors.full_messages,
-                  "Service item must belong to the same organization as the quote"
+                    "Service item must belong to the same organization as the quote"
+
+    assert_includes item.errors.full_messages,
+                    "Quote must belong to the same organization"
   end
 
   test "accepts service item from the same organization as quote" do
@@ -116,6 +126,7 @@ class QuoteItemTest < ActiveSupport::TestCase
     )
 
     refute item.valid?
+
     assert item.errors[:tax_rate].any?
   end
 
