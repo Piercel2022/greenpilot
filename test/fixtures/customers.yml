@@ -1,5 +1,3 @@
-# test/fixtures/customers.yml
-
 customer_a:
   organization: organization_a
   customer_type: individual
@@ -16,4 +14,14 @@ customer_b:
   company_name: Martin Paysage
   email: contact@martin-paysage.example.test
   phone: "0100000002"
+  active: true
+
+customer_c:
+  organization: organization_c
+  customer_type: individual
+  first_name: Sophie
+  last_name: Bernard
+  email: sophie.bernard@example.test
+  phone: "0100000003"
+  mobile: "0600000003"
   active: true
