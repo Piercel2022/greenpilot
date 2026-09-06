@@ -7,6 +7,10 @@ class TeamPolicy < ApplicationPolicy
     same_organization?
   end
 
+  def available_members?
+    same_organization? && management?
+  end
+
   def create?
     management?
   end
