@@ -18,7 +18,15 @@ Rails.application.routes.draw do
     resources :service_items
     resources :quotes
     resources :quote_items
-    resources :teams
+    resources :teams do
+  get :available_members,
+      on: :member,
+      controller: "team_members"
+
+  resources :members,
+            controller: "team_members",
+            only: %i[index create update destroy]
+    end
     resources :team_memberships
     resources :vehicles
     resources :equipment
