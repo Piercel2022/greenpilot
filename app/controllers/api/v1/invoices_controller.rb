@@ -1,7 +1,7 @@
 module Api
   module V1
     class InvoicesController < BaseController
-      before_action :set_invoice, only: %i[show update destroy]
+      before_action :set_invoice, only: %i[show update destroy pdf]
 
       def index
         invoices = policy_scope(Invoice)
@@ -51,6 +51,17 @@ module Api
         @invoice.destroy!
 
         head :no_content
+      end
+
+      def pdf
+        authorize @invoice, :show?
+
+        pdf = Pdf::InvoicePdf.new(@invoice).render
+
+        send_data pdf,
+                  filename: "facture-#{@invoice.number.presence || @invoice.id}.pdf",
+                  type: "application/pdf",
+                  disposition: "attachment"
       end
 
       private
