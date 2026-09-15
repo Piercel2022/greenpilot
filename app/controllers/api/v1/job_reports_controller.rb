@@ -1,7 +1,8 @@
+
 module Api
   module V1
     class JobReportsController < BaseController
-      before_action :set_job_report, only: %i[show update destroy]
+      before_action :set_job_report, only: %i[show update destroy pdf]
 
       def index
         job_reports = policy_scope(JobReport)
@@ -46,6 +47,17 @@ module Api
         @job_report.destroy!
 
         head :no_content
+      end
+
+      def pdf
+        authorize @job_report, :show?
+
+        pdf = Pdf::JobReportPdf.new(@job_report).render
+
+        send_data pdf,
+            filename: "rapport-intervention-#{@job_report.id}.pdf",
+            type: "application/pdf",
+            disposition: "attachment"
       end
 
       private
