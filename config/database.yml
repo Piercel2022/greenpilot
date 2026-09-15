@@ -31,7 +31,7 @@ development:
   username: postgres
 
   # The password associated with the PostgreSQL role (username).
-  password: Postgres2026!
+  password: <%= ENV.fetch("GREENPILOT_DATABASE_PASSWORD") %>
 
   # Connect on a TCP socket. Omitted by default since the client uses a
   # domain socket that doesn't need configuration. Windows does not have
@@ -58,7 +58,7 @@ test:
   <<: *default
   database: greenpilot_api_test
   username: postgres
-  password: Postgres2026!
+  password: <%= ENV.fetch("GREENPILOT_DATABASE_PASSWORD") %>
   host: localhost
   port: 5433
 
