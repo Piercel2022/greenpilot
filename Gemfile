@@ -22,6 +22,10 @@ gem "solid_cable"
 
 gem "pundit"
 
+gem "prawn"
+gem "matrix"
+gem "prawn-table"
+
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
 
