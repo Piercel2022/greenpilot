@@ -1,0 +1,31 @@
+starter:
+  name: Starter
+  slug: starter
+  monthly_price_cents: 2900
+  yearly_price_cents: 29000
+  max_users: 1
+  active: true
+
+pro:
+  name: Pro
+  slug: pro
+  monthly_price_cents: 5900
+  yearly_price_cents: 59000
+  max_users: 5
+  active: true
+
+business:
+  name: Business
+  slug: business
+  monthly_price_cents: 9900
+  yearly_price_cents: 99000
+  max_users: 15
+  active: true
+
+founder:
+  name: Founder
+  slug: founder
+  monthly_price_cents: 3900
+  yearly_price_cents: 39000
+  max_users: 5
+  active: true
