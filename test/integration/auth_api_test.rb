@@ -1,4 +1,3 @@
-
 require "test_helper"
 
 class AuthApiTest < ActionDispatch::IntegrationTest
@@ -85,6 +84,51 @@ class AuthApiTest < ActionDispatch::IntegrationTest
   end
 
   # ============================================================
+  # REGISTRATION
+  # ============================================================
+
+  test "registration creates organization with starter subscription" do
+    assert_difference("Organization.count", 1) do
+      assert_difference("User.count", 1) do
+        assert_difference("Subscription.count", 1) do
+          post "/api/v1/auth/register",
+               params: {
+                 first_name: "New",
+                 last_name: "Owner",
+                 organization_name: "New GreenPilot Company",
+                 email: "new-owner@example.com",
+                 password: "password123",
+                 password_confirmation: "password123"
+               },
+               as: :json
+        end
+      end
+    end
+
+    assert_response :created
+
+    body = JSON.parse(response.body)
+
+    assert body["token"].present?
+    assert body.dig("user", "id").present?
+
+    user = User.find(body.dig("user", "id"))
+    organization = user.organization
+    subscription = organization.subscription
+
+    assert_equal "owner", user.role
+
+    assert_not_nil subscription
+    assert_equal "starter", subscription.plan.slug
+    assert_equal "trialing", subscription.status
+    assert_equal "monthly", subscription.billing_interval
+
+    assert_in_delta 14.days.from_now.to_f,
+                     subscription.trial_ends_at.to_f,
+                     5.seconds
+  end
+
+  # ============================================================
   # CURRENT USER
   # ============================================================
 
@@ -138,5 +182,4 @@ class AuthApiTest < ActionDispatch::IntegrationTest
 
     assert_response :unauthorized
   end
-
 end
