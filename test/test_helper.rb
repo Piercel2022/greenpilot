@@ -7,7 +7,7 @@ require_relative "support/test_helpers"
 class ActiveSupport::TestCase
   include TestHelpers
 
-  fixtures :organizations, :users, :customers, :sites, :teams,
+  fixtures :organizations, :users, :plans, :customers, :sites, :teams,
            :team_memberships, :vehicles, :equipment,
            :service_categories, :service_items, :quotes,
            :quote_items, :jobs, :job_reports, :job_assignments, :invoices,
