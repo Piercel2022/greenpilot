@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_22_231341) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_09_170542) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -41,6 +41,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_22_231341) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "contact_requests", force: :cascade do |t|
+    t.string "company", null: false
+    t.datetime "created_at", null: false
+    t.string "email", null: false
+    t.string "first_name", null: false
+    t.string "last_name", null: false
+    t.text "message", null: false
+    t.string "phone"
+    t.string "request_type", null: false
+    t.string "status", default: "new", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_contact_requests_on_created_at"
+    t.index ["email"], name: "index_contact_requests_on_email"
+    t.index ["request_type"], name: "index_contact_requests_on_request_type"
+    t.index ["status"], name: "index_contact_requests_on_status"
   end
 
   create_table "customers", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -270,6 +287,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_22_231341) do
     t.index ["slug"], name: "index_organizations_on_slug", unique: true
   end
 
+  create_table "plans", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.integer "max_users", default: 1, null: false
+    t.integer "monthly_price_cents", default: 0, null: false
+    t.string "name", null: false
+    t.string "slug", null: false
+    t.string "stripe_monthly_price_id"
+    t.string "stripe_product_id"
+    t.string "stripe_yearly_price_id"
+    t.datetime "updated_at", null: false
+    t.integer "yearly_price_cents", default: 0, null: false
+    t.index ["active"], name: "index_plans_on_active"
+    t.index ["slug"], name: "index_plans_on_slug", unique: true
+  end
+
   create_table "quote_items", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "description", null: false
@@ -394,6 +427,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_22_231341) do
     t.index ["organization_id"], name: "index_sites_on_organization_id"
   end
 
+  create_table "subscriptions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "billing_interval", default: "monthly", null: false
+    t.datetime "canceled_at"
+    t.datetime "created_at", null: false
+    t.datetime "current_period_end"
+    t.datetime "current_period_start"
+    t.uuid "organization_id", null: false
+    t.uuid "plan_id", null: false
+    t.string "status", default: "trialing", null: false
+    t.string "stripe_customer_id"
+    t.string "stripe_subscription_id"
+    t.datetime "trial_ends_at"
+    t.datetime "updated_at", null: false
+    t.index ["organization_id"], name: "index_subscriptions_on_organization_id", unique: true
+    t.index ["plan_id"], name: "index_subscriptions_on_plan_id"
+    t.index ["stripe_customer_id"], name: "index_subscriptions_on_stripe_customer_id", unique: true
+    t.index ["stripe_subscription_id"], name: "index_subscriptions_on_stripe_subscription_id", unique: true
+  end
+
   create_table "team_memberships", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
@@ -437,10 +489,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_22_231341) do
     t.uuid "organization_id", null: false
     t.string "password_digest"
     t.string "phone"
+    t.string "platform_role"
     t.string "role", default: "member", null: false
     t.datetime "updated_at", null: false
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["organization_id"], name: "index_users_on_organization_id"
+    t.index ["platform_role"], name: "index_users_on_platform_role"
   end
 
   create_table "vehicles", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -499,6 +553,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_22_231341) do
   add_foreign_key "service_items", "service_categories"
   add_foreign_key "sites", "customers"
   add_foreign_key "sites", "organizations"
+  add_foreign_key "subscriptions", "organizations"
+  add_foreign_key "subscriptions", "plans"
   add_foreign_key "team_memberships", "organizations"
   add_foreign_key "team_memberships", "teams"
   add_foreign_key "team_memberships", "users"
