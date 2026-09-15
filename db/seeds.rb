@@ -953,6 +953,72 @@ ApplicationRecord.transaction do
 
   puts "✓ Invoice items"
 
+  puts "Seeding GreenPilot plans..."
+
+  plans = [
+  {
+    name: "Starter",
+    slug: "starter",
+    monthly_price_cents: 2_900,
+    yearly_price_cents: 29_000,
+    max_users: 1,
+    active: true
+  },
+  {
+    name: "Pro",
+    slug: "pro",
+    monthly_price_cents: 5_900,
+    yearly_price_cents: 59_000,
+    max_users: 5,
+    active: true
+  },
+  {
+    name: "Business",
+    slug: "business",
+    monthly_price_cents: 9_900,
+    yearly_price_cents: 99_000,
+    max_users: 15,
+    active: true
+  },
+  {
+    name: "Founder",
+    slug: "founder",
+    monthly_price_cents: 3_900,
+    yearly_price_cents: 39_000,
+    max_users: 5,
+    active: true
+  }
+]
+
+plans.each do |attributes|
+  plan = Plan.find_or_initialize_by(slug: attributes[:slug])
+  plan.assign_attributes(attributes)
+  plan.save!
+
+  puts "  ✓ #{plan.name} — #{plan.monthly_price_cents / 100.0} €/mois"
+end
+
+puts "GreenPilot plans seeded: #{Plan.count}"
+
+
+platform_admin = User.find_or_initialize_by(
+  email: "admin@usegreenpilot.pro"
+)
+
+platform_admin.assign_attributes(
+  organization: organization_a,
+  email: "admin@usegreenpilot.pro",
+  password: "ChangeMe123!",
+  password_confirmation: "ChangeMe123!",
+  first_name: "GreenPilot",
+  last_name: "Admin",
+  role: :owner,
+  platform_role: :platform_admin,
+  active: true
+)
+
+platform_admin.save!
+
   # ============================================================
   # SUMMARY
   # ============================================================
