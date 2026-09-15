@@ -348,6 +348,16 @@ class Api::V1::InvoicesControllerTest < ActionDispatch::IntegrationTest
     assert_response :forbidden
   end
 
+  test "GET /invoices/:id/pdf returns a PDF" do
+  get "/api/v1/invoices/#{@invoice.id}/pdf",
+      headers: {
+        "Authorization" => "Bearer #{@manager_token}"
+      }
+
+  assert_response :success
+  assert_equal "application/pdf", response.media_type
+end
+
   test "manager cannot update an invoice from another organization" do
     patch "/api/v1/invoices/#{@other_invoice.id}",
           params: {
