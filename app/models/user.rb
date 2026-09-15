@@ -1,3 +1,4 @@
+
 class User < ApplicationRecord
   has_secure_password
 
@@ -18,5 +19,9 @@ class User < ApplicationRecord
     manager: "manager",
     admin: "admin",
     owner: "owner"
+  }
+
+  enum :platform_role, {
+    platform_admin: "platform_admin"
   }
 end
