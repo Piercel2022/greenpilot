@@ -87,3 +87,12 @@ field_worker_b:
   role: field_worker
   active: true
   password_digest: $2a$12$y/Jqg7kdElEQYzl.Fm4Wn.BFG70ysMySoDdFjjWIBBmKPnwXJNlj2
+platform_admin_a:
+  email: platform-admin@greenpilot.test
+  password_digest: <%= BCrypt::Password.create("password") %>
+  first_name: Platform
+  last_name: Admin
+  role: owner
+  platform_role: platform_admin
+  active: true
+  organization: organization_a
