@@ -1,14 +1,16 @@
 Rails.application.routes.draw do
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
-
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   get "up" => "rails/health#show", as: :rails_health_check
 
   namespace :api do
     namespace :v1 do
+      get "dashboard", to: "dashboard#show"
+
       namespace :admin do
-         get "dashboard", to: "dashboard#show"
-       end
+        get "dashboard", to: "dashboard#show"
+      end
+
       post "auth/login", to: "auth#login"
       post "auth/register", to: "auth#register"
       get "auth/me", to: "auth#me"
