@@ -136,7 +136,7 @@ ApplicationRecord.transaction do
       email: "compta@greenpilot-paysage.fr",
       first_name: "Claire",
       last_name: "Robert",
-      phone: "0600310704",
+      phone: "0680310704",
       role: "accountant"
     },
     {
