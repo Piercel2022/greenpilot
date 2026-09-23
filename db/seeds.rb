@@ -1,19 +1,91 @@
 # db/seeds.rb
 
-puts "🌱 Starting GreenPilot seeds..."
+require "bigdecimal"
+
+puts
+puts "============================================================"
+puts " GREENPILOT DEMO SEED"
+puts "============================================================"
+puts
 
 ApplicationRecord.transaction do
+  today = Date.current
+  now = Time.zone.now
+
+  seed_password = "GreenPilot2026!"
+
   # ============================================================
-  # ORGANIZATIONS
+  # HELPERS
   # ============================================================
 
-  organization_a = Organization.find_or_initialize_by(
+  money = ->(value) { BigDecimal(value.to_s) }
+
+  datetime = lambda do |date, hour = 8, minute = 0|
+    Time.zone.local(date.year, date.month, date.day, hour, minute)
+  end
+
+  valid_inclusion_values = lambda do |model, attribute|
+    validator = model.validators_on(attribute).find do |item|
+      item.is_a?(ActiveModel::Validations::InclusionValidator)
+    end
+
+    next [] unless validator
+
+    values = validator.options[:in]
+
+    values.respond_to?(:call) ? Array(values.call) : Array(values)
+  end
+
+  job_status_values = valid_inclusion_values.call(Job, :status)
+  job_priority_values = valid_inclusion_values.call(Job, :priority)
+  job_weather_values = valid_inclusion_values.call(Job, :weather_risk)
+
+  job_status_values = job_status_values.map(&:to_s)
+  job_priority_values = job_priority_values.map(&:to_s)
+  job_weather_values = job_weather_values.map(&:to_s)
+
+  pick_value = lambda do |values, preferred, fallback|
+    preferred = preferred.to_s
+
+    if values.include?(preferred)
+      preferred
+    else
+      values.first || fallback
+    end
+  end
+
+  status_planned = pick_value.call(job_status_values, "planned", "planned")
+  status_scheduled = pick_value.call(job_status_values, "scheduled", status_planned)
+  status_in_progress = pick_value.call(job_status_values, "in_progress", status_scheduled)
+  status_completed = pick_value.call(job_status_values, "completed", status_scheduled)
+  status_cancelled = pick_value.call(job_status_values, "cancelled", status_planned)
+
+  priority_low = pick_value.call(job_priority_values, "low", "normal")
+  priority_normal = pick_value.call(job_priority_values, "normal", "normal")
+  priority_high = pick_value.call(job_priority_values, "high", "normal")
+  priority_urgent = pick_value.call(job_priority_values, "urgent", priority_high)
+
+  weather_low = pick_value.call(job_weather_values, "low", "unknown")
+  weather_medium = pick_value.call(job_weather_values, "medium", weather_low)
+  weather_high = pick_value.call(job_weather_values, "high", weather_medium)
+  weather_unknown = pick_value.call(job_weather_values, "unknown", weather_low)
+
+  puts "Job statuses detected: #{job_status_values.join(", ")}"
+  puts "Job priorities detected: #{job_priority_values.join(", ")}"
+  puts "Weather risks detected: #{job_weather_values.join(", ")}"
+  puts
+
+  # ============================================================
+  # ORGANIZATION
+  # ============================================================
+
+  organization = Organization.find_or_initialize_by(
     slug: "greenpilot-paysage"
   )
 
-  organization_a.assign_attributes(
+  organization.assign_attributes(
     name: "GreenPilot Paysage",
-    description: "Entreprise de paysage et entretien des espaces verts.",
+    description: "Entreprise de paysage, entretien des espaces verts et aménagement extérieur.",
     email: "contact@greenpilot-paysage.fr",
     phone: "0388000001",
     address: "10 rue des Jardins",
@@ -24,28 +96,9 @@ ApplicationRecord.transaction do
     active: true
   )
 
-  organization_a.save!
+  organization.save!
 
-  organization_b = Organization.find_or_initialize_by(
-    slug: "espaces-verts-alsace"
-  )
-
-  organization_b.assign_attributes(
-    name: "Espaces Verts Alsace",
-    description: "Entreprise spécialisée dans la création et l'aménagement paysager.",
-    email: "contact@espaces-verts-alsace.fr",
-    phone: "0388000002",
-    address: "25 avenue des Espaces Verts",
-    city: "Schiltigheim",
-    postal_code: "67300",
-    country: "FR",
-    timezone: "Europe/Paris",
-    active: true
-  )
-
-  organization_b.save!
-
-  puts "✓ Organizations"
+  puts "✓ Organization"
 
   # ============================================================
   # USERS
@@ -53,12 +106,9 @@ ApplicationRecord.transaction do
 
   users = {}
 
-  seed_password = "GreenPilot2026!"
-
   users_data = [
     {
-      key: :owner_a,
-      organization: organization_a,
+      key: :owner,
       email: "owner@greenpilot-paysage.fr",
       first_name: "Pierre",
       last_name: "Martin",
@@ -66,8 +116,7 @@ ApplicationRecord.transaction do
       role: "owner"
     },
     {
-      key: :admin_a,
-      organization: organization_a,
+      key: :admin,
       email: "admin@greenpilot-paysage.fr",
       first_name: "Sophie",
       last_name: "Bernard",
@@ -75,8 +124,7 @@ ApplicationRecord.transaction do
       role: "admin"
     },
     {
-      key: :manager_a,
-      organization: organization_a,
+      key: :manager,
       email: "manager@greenpilot-paysage.fr",
       first_name: "Thomas",
       last_name: "Dubois",
@@ -84,8 +132,7 @@ ApplicationRecord.transaction do
       role: "manager"
     },
     {
-      key: :accountant_a,
-      organization: organization_a,
+      key: :accountant,
       email: "compta@greenpilot-paysage.fr",
       first_name: "Claire",
       last_name: "Robert",
@@ -93,957 +140,1108 @@ ApplicationRecord.transaction do
       role: "accountant"
     },
     {
-      key: :field_worker_a,
-      organization: organization_a,
-      email: "terrain@greenpilot-paysage.fr",
+      key: :field_worker_1,
+      email: "terrain1@greenpilot-paysage.fr",
       first_name: "Lucas",
       last_name: "Petit",
       phone: "0600000005",
       role: "field_worker"
     },
     {
-      key: :member_a,
-      organization: organization_a,
-      email: "member@greenpilot-paysage.fr",
+      key: :field_worker_2,
+      email: "terrain2@greenpilot-paysage.fr",
       first_name: "Emma",
       last_name: "Richard",
       phone: "0600000006",
-      role: "member"
+      role: "field_worker"
     },
     {
-      key: :manager_b,
-      organization: organization_b,
-      email: "manager@espaces-verts-alsace.fr",
-      first_name: "Nicolas",
-      last_name: "Moreau",
+      key: :member,
+      email: "member@greenpilot-paysage.fr",
+      first_name: "Julien",
+      last_name: "Lefèvre",
       phone: "0600000007",
-      role: "manager"
-    },
-    {
-      key: :member_b,
-      organization: organization_b,
-      email: "member@espaces-verts-alsace.fr",
-      first_name: "Julie",
-      last_name: "Simon",
-      phone: "0600000008",
       role: "member"
     }
   ]
 
   users_data.each do |data|
-    key = data.delete(:key)
+    key = data[:key]
 
-    user = User.find_or_initialize_by(email: data[:email])
-
-    user.assign_attributes(
-      data.merge(
-        password: seed_password,
-        password_confirmation: seed_password
-      )
+    user = User.find_or_initialize_by(
+      email: data[:email]
     )
 
-    user.active = true
+    user.assign_attributes(
+      organization: organization,
+      email: data[:email],
+      first_name: data[:first_name],
+      last_name: data[:last_name],
+      phone: data[:phone],
+      role: data[:role],
+      active: true,
+      password: seed_password,
+      password_confirmation: seed_password
+    )
+
     user.save!
 
     users[key] = user
   end
 
-  puts "✓ Users"
+  puts "✓ Users: #{users.count}"
 
   # ============================================================
   # CUSTOMERS
   # ============================================================
 
-  customers = {}
+  customers = []
 
-  customer_a = Customer.find_or_initialize_by(
-    organization: organization_a,
-    email: "contact@jardin-alsace.fr"
-  )
+  customer_data = [
+    ["Alsace Patrimoine", "Marc", "Leroy", "marc.leroy@alsace-patrimoine.fr", "0388010001", "0601000001", "company"],
+    ["Résidence Les Tilleuls", "Anne", "Martin", "anne.martin@example.fr", "0388010002", "0601000002", "company"],
+    ["Hôtel des Vosges", "Nathalie", "Schmitt", "n.schmitt@hotel-vosges.fr", "0388010003", "0601000003", "company"],
+    ["Cabinet Horizon", "Laurent", "Muller", "laurent.muller@horizon.fr", "0388010004", "0601000004", "company"],
+    ["Restaurant Le Jardin", "Paul", "Weber", "paul.weber@lejardin.fr", "0388010005", "0601000005", "company"],
+    ["Villa Strasbourg", "Claire", "Fischer", "claire.fischer@example.fr", "0388010006", "0601000006", "individual"],
+    ["Famille Bernard", "Jean", "Bernard", "jean.bernard@example.fr", "0388010007", "0601000007", "individual"],
+    ["Famille Meyer", "Sophie", "Meyer", "sophie.meyer@example.fr", "0388010008", "0601000008", "individual"],
+    ["Maison Klein", "Thomas", "Klein", "thomas.klein@example.fr", "0388010009", "0601000009", "individual"],
+    ["Groupe Immobilier Est", "Olivier", "Roux", "olivier.roux@gie.fr", "0388010010", "0601000010", "company"],
+    ["Résidence Bellevue", "Isabelle", "Simon", "isabelle.simon@example.fr", "0388010011", "0601000011", "company"],
+    ["Clinique Sainte-Marie", "Élodie", "Robert", "elodie.robert@clinique.fr", "0388010012", "0601000012", "company"],
+    ["Bureau Alsace Conseil", "François", "Moreau", "francois.moreau@alsaceconseil.fr", "0388010013", "0601000013", "company"],
+    ["Agence Immobilière Centre", "Julie", "Garcia", "julie.garcia@agence-centre.fr", "0388010014", "0601000014", "company"],
+    ["Maison Dupont", "Nicolas", "Dupont", "nicolas.dupont@example.fr", "0388010015", "0601000015", "individual"],
+    ["Famille Wagner", "Caroline", "Wagner", "caroline.wagner@example.fr", "0388010016", "0601000016", "individual"],
+    ["Campus Strasbourg", "Vincent", "Faure", "vincent.faure@campus.fr", "0388010017", "0601000017", "company"],
+    ["Espace Médical Alsace", "Sandrine", "Giraud", "sandrine.giraud@medical.fr", "0388010018", "0601000018", "company"],
+    ["Maison du Parc", "Philippe", "Chevalier", "philippe.chevalier@example.fr", "0388010019", "0601000019", "individual"],
+    ["Boulangerie des Halles", "Amélie", "Bonnet", "amelie.bonnet@boulangerie.fr", "0388010020", "0601000020", "company"],
+    ["Résidence du Canal", "Hugo", "Blanc", "hugo.blanc@example.fr", "0388010021", "0601000021", "company"],
+    ["Atelier Créatif", "Marion", "Gauthier", "marion.gauthier@atelier.fr", "0388010022", "0601000022", "company"],
+    ["Famille Schaeffer", "Arnaud", "Schaeffer", "arnaud.schaeffer@example.fr", "0388010023", "0601000023", "individual"],
+    ["Domaine de l'Orangerie", "Céline", "Lemaire", "celine.lemaire@orangerie.fr", "0388010024", "0601000024", "company"]
+  ]
 
-  customer_a.assign_attributes(
-    customer_type: "company",
-    company_name: "Jardin Alsace",
-    first_name: "Marc",
-    last_name: "Leroy",
-    phone: "0388010001",
-    mobile: "0601000001",
-    notes: "Client professionnel principal.",
-    active: true
-  )
+  customer_data.each_with_index do |data, index|
+    company_name = data[6] == "company" ? data[0] : nil
 
-  customer_a.save!
-  customers[:customer_a] = customer_a
+    customer = Customer.find_or_initialize_by(
+      organization: organization,
+      email: data[3]
+    )
 
-  customer_b = Customer.find_or_initialize_by(
-    organization: organization_b,
-    email: "contact@vertesolutions.fr"
-  )
+    customer.assign_attributes(
+      customer_type: data[6],
+      company_name: company_name,
+      first_name: data[1],
+      last_name: data[2],
+      phone: data[4],
+      mobile: data[5],
+      notes: "Client GreenPilot ##{index + 1}.",
+      active: index != 22
+    )
 
-  customer_b.assign_attributes(
-    customer_type: "company",
-    company_name: "Verte Solutions",
-    first_name: "Anne",
-    last_name: "Garcia",
-    phone: "0388010002",
-    mobile: "0601000002",
-    notes: "Client entreprise pour projets d'aménagement.",
-    active: true
-  )
+    customer.save!
+    customers << customer
+  end
 
-  customer_b.save!
-  customers[:customer_b] = customer_b
-
-  puts "✓ Customers"
+  puts "✓ Customers: #{customers.count}"
 
   # ============================================================
   # SITES
   # ============================================================
 
-  sites = {}
+  sites = []
 
-  site_a = Site.find_or_initialize_by(
-    organization: organization_a,
-    name: "Jardin principal - Jardin Alsace"
-  )
+  site_templates = [
+    ["Jardin principal", "15 rue des Fleurs", "Strasbourg", "67000", "residential", 1200.0],
+    ["Siège social", "22 avenue des Vosges", "Strasbourg", "67000", "commercial", 850.0],
+    ["Espace extérieur", "40 route de Bischwiller", "Schiltigheim", "67300", "commercial", 3500.0],
+    ["Jardin arrière", "8 rue des Jardins", "Bischheim", "67800", "residential", 650.0],
+    ["Parking végétalisé", "12 rue du Commerce", "Strasbourg", "67100", "commercial", 1800.0],
+    ["Parc principal", "5 avenue de l'Europe", "Illkirch-Graffenstaden", "67400", "commercial", 5200.0],
+    ["Maison principale", "17 rue des Roses", "Ostwald", "67540", "residential", 900.0],
+    ["Terrasse et jardin", "31 rue du Parc", "Lingolsheim", "67380", "residential", 720.0],
+    ["Domaine", "2 route de la Forêt", "Mundolsheim", "67450", "residential", 4800.0],
+    ["Entrée principale", "18 rue du Centre", "Hœnheim", "67800", "commercial", 1100.0],
+    ["Espace accueil", "9 rue de la Gare", "Vendenheim", "67550", "commercial", 1400.0],
+    ["Cour intérieure", "25 rue Nationale", "Geispolsheim", "67118", "commercial", 600.0],
+    ["Jardin familial", "7 rue des Acacias", "Eckbolsheim", "67201", "residential", 780.0],
+    ["Maison secondaire", "44 rue des Prés", "Oberhausbergen", "67205", "residential", 1350.0],
+    ["Complexe professionnel", "60 avenue de Strasbourg", "Entzheim", "67960", "commercial", 6200.0],
+    ["Parc paysager", "4 rue du Château", "Molsheim", "67120", "commercial", 7600.0],
+    ["Résidence principale", "14 rue Bellevue", "Saverne", "67700", "residential", 1600.0],
+    ["Jardin avant", "3 rue des Lilas", "Barr", "67140", "residential", 950.0],
+    ["Zone d'accueil", "10 rue du Stade", "Obernai", "67210", "commercial", 2100.0],
+    ["Espace vert", "16 route de Colmar", "Sélestat", "67600", "commercial", 3300.0],
+    ["Terrasse", "21 rue des Vignes", "Rosheim", "67560", "residential", 550.0],
+    ["Parc entreprise", "33 rue de l'Industrie", "Duttlenheim", "67120", "commercial", 4500.0],
+    ["Jardin privé", "6 rue du Moulin", "Mittelhausbergen", "67206", "residential", 1000.0],
+    ["Centre administratif", "50 rue de la République", "Strasbourg", "67000", "commercial", 2700.0],
+    ["Domaine extérieur", "12 chemin du Lac", "Plobsheim", "67115", "residential", 3900.0],
+    ["Jardin clients", "19 rue des Écoles", "Brumath", "67170", "commercial", 1700.0],
+    ["Espace détente", "28 rue de la Paix", "La Wantzenau", "67610", "residential", 1150.0],
+    ["Jardin principal", "41 rue des Champs", "Hoerdt", "67720", "residential", 2400.0],
+    ["Site logistique", "55 rue des Entreprises", "Haguenau", "67500", "commercial", 8900.0],
+    ["Maison du parc", "8 chemin des Bois", "Wasselonne", "67310", "residential", 3100.0],
+    ["Domaine de l'Orangerie", "1 route de l'Orangerie", "Strasbourg", "67000", "commercial", 5400.0]
+  ]
 
-  site_a.assign_attributes(
-    customer: customer_a,
-    address_line1: "15 rue des Fleurs",
-    address_line2: nil,
-    city: "Strasbourg",
-    postal_code: "67000",
-    country: "FR",
-    site_type: "residential",
-    surface_area: 1200.0,
-    latitude: 48.5734,
-    longitude: 7.7521,
-    notes: "Grand jardin avec pelouse et massifs.",
-    active: true
-  )
+  site_templates.each_with_index do |template, index|
+    customer = customers[index % customers.length]
 
-  site_a.save!
-  sites[:site_a] = site_a
+    site = Site.find_or_initialize_by(
+      organization: organization,
+      name: "#{template[0]} - #{customer.last_name}"
+    )
 
-  site_b = Site.find_or_initialize_by(
-    organization: organization_b,
-    name: "Projet espace vert - Verte Solutions"
-  )
+    site.assign_attributes(
+      customer: customer,
+      address_line1: template[1],
+      address_line2: index.even? ? nil : "Zone #{index + 1}",
+      city: template[2],
+      postal_code: template[3],
+      country: "FR",
+      site_type: template[4],
+      surface_area: template[5],
+      latitude: 48.50 + (index * 0.004),
+      longitude: 7.65 + (index * 0.005),
+      notes: "Site client #{index + 1} — suivi opérationnel GreenPilot.",
+      active: index != 29
+    )
 
-  site_b.assign_attributes(
-    customer: customer_b,
-    address_line1: "40 route de Bischwiller",
-    address_line2: nil,
-    city: "Schiltigheim",
-    postal_code: "67300",
-    country: "FR",
-    site_type: "commercial",
-    surface_area: 3500.0,
-    latitude: 48.6167,
-    longitude: 7.7500,
-    notes: "Site professionnel destiné à un projet d'aménagement.",
-    active: true
-  )
+    site.save!
+    sites << site
+  end
 
-  site_b.save!
-  sites[:site_b] = site_b
-
-  puts "✓ Sites"
+  puts "✓ Sites: #{sites.count}"
 
   # ============================================================
   # SERVICE CATEGORIES
   # ============================================================
 
-  categories = {}
+  category_names = [
+    ["ENT", "Entretien des espaces verts", "maintenance"],
+    ["TON", "Tonte et gazon", "maintenance"],
+    ["TAIL", "Taille et haies", "maintenance"],
+    ["ARB", "Élagage et arboriculture", "tree_care"],
+    ["IRR", "Arrosage et irrigation", "irrigation"],
+    ["CRE", "Création paysagère", "creation"],
+    ["PLT", "Plantation et végétalisation", "planting"],
+    ["SOL", "Sols et préparation", "groundwork"],
+    ["TER", "Terrassement et travaux extérieurs", "groundwork"],
+    ["SAI", "Prestations saisonnières", "seasonal"]
+  ]
 
-  category_a = ServiceCategory.find_or_initialize_by(
-    organization: organization_a,
-    code: "ENT"
-  )
+  categories = []
 
-  category_a.assign_attributes(
-    name: "Entretien des espaces verts",
-    description: "Travaux réguliers d'entretien des jardins et espaces verts.",
-    category_type: "maintenance",
-    position: 1,
-    active: true
-  )
+  category_names.each_with_index do |data, index|
+    category = ServiceCategory.find_or_initialize_by(
+      organization: organization,
+      code: data[0]
+    )
 
-  category_a.save!
-  categories[:category_a] = category_a
+    category.assign_attributes(
+      name: data[1],
+      description: "Prestations GreenPilot — #{data[1].downcase}.",
+      category_type: data[2],
+      position: index + 1,
+      active: true
+    )
 
-  category_b = ServiceCategory.find_or_initialize_by(
-    organization: organization_b,
-    code: "CRE"
-  )
+    category.save!
+    categories << category
+  end
 
-  category_b.assign_attributes(
-    name: "Création paysagère",
-    description: "Création et aménagement d'espaces verts.",
-    category_type: "creation",
-    position: 1,
-    active: true
-  )
-
-  category_b.save!
-  categories[:category_b] = category_b
-
-  puts "✓ Service categories"
+  puts "✓ Service categories: #{categories.count}"
 
   # ============================================================
   # SERVICE ITEMS
   # ============================================================
 
-  service_items = {}
+  service_definitions = [
+    ["TON-01", 1, "Tonte de pelouse", "Tonte professionnelle des surfaces engazonnées", "m2", 0.85, 30],
+    ["TON-02", 1, "Tonte grande surface", "Tonte mécanisée de grandes surfaces", "m2", 0.65, 32],
+    ["TON-03", 1, "Scarification", "Scarification du gazon", "m2", 1.40, 35],
+    ["TON-04", 1, "Aération du gazon", "Aération mécanique du gazon", "m2", 1.20, 34],
 
-  item_a = ServiceItem.find_or_initialize_by(
-    organization: organization_a,
-    code: "TON"
-  )
+    ["ENT-01", 0, "Entretien massif", "Entretien courant des massifs", "m2", 3.50, 38],
+    ["ENT-02", 0, "Désherbage manuel", "Désherbage manuel des espaces plantés", "heure", 42.00, 40],
+    ["ENT-03", 0, "Nettoyage espace vert", "Nettoyage général des espaces verts", "heure", 38.00, 36],
+    ["ENT-04", 0, "Soufflage", "Soufflage et nettoyage des surfaces", "heure", 35.00, 35],
 
-  item_a.assign_attributes(
-    service_category: category_a,
-    name: "Tonte de pelouse",
-    description: "Tonte professionnelle des espaces verts",
-    unit: "m2",
-    default_quantity: 100.000,
-    default_unit_price: 0.80,
-    default_margin_percentage: 30.00,
-    labor_cost: 40.00,
-    material_cost: 5.00,
-    equipment_cost: 10.00,
-    overhead_cost: 8.00,
-    estimated_duration_minutes: 60,
-    position: 1,
-    active: true
-  )
+    ["TAIL-01", 2, "Taille de haie", "Taille mécanique des haies", "ml", 7.50, 38],
+    ["TAIL-02", 2, "Taille arbustes", "Taille d'entretien des arbustes", "heure", 45.00, 40],
+    ["TAIL-03", 2, "Taille topiaire", "Taille de précision", "heure", 55.00, 42],
+    ["TAIL-04", 2, "Taille de rosiers", "Taille saisonnière des rosiers", "heure", 44.00, 39],
 
-  item_a.save!
-  service_items[:item_a] = item_a
+    ["ARB-01", 3, "Élagage arbre", "Élagage d'entretien d'un arbre", "unité", 280.00, 35],
+    ["ARB-02", 3, "Abattage arbre", "Abattage contrôlé d'un arbre", "unité", 650.00, 38],
+    ["ARB-03", 3, "Dessouchage", "Dessouchage mécanique", "unité", 320.00, 36],
+    ["ARB-04", 3, "Évacuation bois", "Évacuation et traitement des déchets verts", "m3", 95.00, 35],
 
-  item_b = ServiceItem.find_or_initialize_by(
-    organization: organization_b,
-    code: "CRE"
-  )
+    ["IRR-01", 4, "Diagnostic arrosage", "Diagnostic d'une installation d'arrosage", "forfait", 180.00, 40],
+    ["IRR-02", 4, "Installation arrosage", "Installation d'un système d'arrosage", "heure", 65.00, 38],
+    ["IRR-03", 4, "Maintenance arrosage", "Maintenance préventive d'une installation", "forfait", 145.00, 42],
+    ["IRR-04", 4, "Hivernage arrosage", "Mise en hivernage du réseau", "forfait", 120.00, 40],
 
-  item_b.assign_attributes(
-    service_category: category_b,
-    name: "Création d'espace vert",
-    description: "Création et aménagement d'espace vert",
-    unit: "m2",
-    default_quantity: 100.000,
-    default_unit_price: 25.00,
-    default_margin_percentage: 35.00,
-    labor_cost: 500.00,
-    material_cost: 800.00,
-    equipment_cost: 100.00,
-    overhead_cost: 150.00,
-    estimated_duration_minutes: 480,
-    position: 1,
-    active: true
-  )
+    ["CRE-01", 5, "Création massif", "Création complète d'un massif", "m2", 28.00, 35],
+    ["CRE-02", 5, "Création pelouse", "Création d'une pelouse", "m2", 18.00, 36],
+    ["CRE-03", 5, "Plantation paysagère", "Plantation et composition végétale", "m2", 42.00, 38],
+    ["CRE-04", 5, "Aménagement jardin", "Aménagement paysager complet", "m2", 55.00, 34],
 
-  item_b.save!
-  service_items[:item_b] = item_b
+    ["PLT-01", 6, "Plantation arbre", "Plantation d'un arbre", "unité", 180.00, 38],
+    ["PLT-02", 6, "Plantation arbuste", "Plantation d'un arbuste", "unité", 45.00, 40],
+    ["PLT-03", 6, "Plantation vivaces", "Plantation de vivaces", "m2", 32.00, 39],
+    ["PLT-04", 6, "Paillage végétal", "Fourniture et pose de paillage", "m2", 12.00, 42],
 
-  puts "✓ Service items"
+    ["SOL-01", 7, "Préparation du sol", "Préparation mécanique du terrain", "m2", 9.50, 34],
+    ["SOL-02", 7, "Amendement", "Apport et incorporation d'amendement", "m2", 7.50, 36],
+    ["SOL-03", 7, "Nivellement", "Nivellement de terrain", "m2", 11.00, 35],
+    ["SOL-04", 7, "Apport de terre", "Fourniture et mise en place de terre végétale", "m3", 75.00, 32],
+
+    ["TER-01", 8, "Terrassement léger", "Travaux de terrassement léger", "heure", 65.00, 34],
+    ["TER-02", 8, "Pose bordures", "Pose de bordures paysagères", "ml", 28.00, 35],
+    ["TER-03", 8, "Allée gravillonnée", "Création d'une allée gravillonnée", "m2", 48.00, 33],
+    ["TER-04", 8, "Terrasse extérieure", "Préparation et réalisation d'une terrasse", "m2", 95.00, 30],
+
+    ["SAI-01", 9, "Ramassage feuilles", "Ramassage saisonnier des feuilles", "heure", 38.00, 40],
+    ["SAI-02", 9, "Déneigement", "Déneigement des accès", "heure", 55.00, 35],
+    ["SAI-03", 9, "Nettoyage printemps", "Remise en état printanière", "forfait", 240.00, 38],
+    ["SAI-04", 9, "Mise en hivernage", "Préparation des espaces avant hiver", "forfait", 190.00, 38]
+  ]
+
+  service_items = []
+
+  service_definitions.each_with_index do |data, index|
+    code = data[0]
+    category = categories[data[1]]
+
+    item = ServiceItem.find_or_initialize_by(
+      organization: organization,
+      code: code
+    )
+
+    item.assign_attributes(
+      service_category: category,
+      name: data[2],
+      description: data[3],
+      unit: data[4],
+      default_quantity: data[4] == "unité" ? 1.0 : 100.0,
+      default_unit_price: data[5],
+      default_margin_percentage: data[6],
+      labor_cost: data[5] * 0.30,
+      material_cost: data[5] * 0.18,
+      equipment_cost: data[5] * 0.10,
+      overhead_cost: data[5] * 0.08,
+      estimated_duration_minutes: data[4] == "heure" ? 60 : 90,
+      position: index + 1,
+      active: true
+    )
+
+    item.save!
+    service_items << item
+  end
+
+  puts "✓ Service items: #{service_items.count}"
 
   # ============================================================
   # TEAMS
   # ============================================================
 
-  teams = {}
+  team_definitions = [
+    ["ENT-TEAM", "Équipe Entretien", "Opérations d'entretien récurrentes", "#22C55E"],
+    ["CRE-TEAM", "Équipe Création", "Création et aménagement paysager", "#3B82F6"],
+    ["ARB-TEAM", "Équipe Arboricole", "Élagage et travaux arboricoles", "#F59E0B"]
+  ]
 
-  team_a = Team.find_or_initialize_by(
-    organization: organization_a,
-    code: "TEAM-A"
-  )
+  teams = []
 
-  team_a.assign_attributes(
-    name: "Équipe Entretien",
-    description: "Équipe dédiée aux opérations d'entretien.",
-    color: "#22C55E",
-    active: true
-  )
+  team_definitions.each do |data|
+    team = Team.find_or_initialize_by(
+      organization: organization,
+      code: data[0]
+    )
 
-  team_a.save!
-  teams[:team_a] = team_a
+    team.assign_attributes(
+      name: data[1],
+      description: data[2],
+      color: data[3],
+      active: true
+    )
 
-  team_b = Team.find_or_initialize_by(
-    organization: organization_b,
-    code: "TEAM-B"
-  )
+    team.save!
+    teams << team
+  end
 
-  team_b.assign_attributes(
-    name: "Équipe Création",
-    description: "Équipe dédiée aux projets de création paysagère.",
-    color: "#3B82F6",
-    active: true
-  )
-
-  team_b.save!
-  teams[:team_b] = team_b
-
-  puts "✓ Teams"
+  puts "✓ Teams: #{teams.count}"
 
   # ============================================================
   # TEAM MEMBERSHIPS
   # ============================================================
 
-  membership_a = TeamMembership.find_or_initialize_by(
-    team: team_a,
-    user: users[:field_worker_a]
-  )
+  membership_data = [
+    [teams[0], users[:manager], "manager"],
+    [teams[0], users[:field_worker_1], "member"],
+    [teams[0], users[:member], "member"],
+    [teams[1], users[:admin], "manager"],
+    [teams[1], users[:field_worker_2], "member"],
+    [teams[2], users[:owner], "manager"],
+    [teams[2], users[:accountant], "member"]
+  ]
 
-  membership_a.assign_attributes(
-    organization: organization_a,
-    role: "member",
-    active: true,
-    start_date: Date.current - 180.days
-  )
+  membership_data.each_with_index do |data, index|
+    membership = TeamMembership.find_or_initialize_by(
+      team: data[0],
+      user: data[1]
+    )
 
-  membership_a.save!
+    membership.assign_attributes(
+      organization: organization,
+      role: data[2],
+      active: true,
+      start_date: today - (180 + index * 20).days,
+      end_date: nil
+    )
 
-  membership_manager = TeamMembership.find_or_initialize_by(
-    team: team_a,
-    user: users[:manager_a]
-  )
+    membership.save!
+  end
 
-  membership_manager.assign_attributes(
-    organization: organization_a,
-    role: "manager",
-    active: true,
-    start_date: Date.current - 365.days
-  )
-
-  membership_manager.save!
-
-  membership_b = TeamMembership.find_or_initialize_by(
-    team: team_b,
-    user: users[:manager_b]
-  )
-
-  membership_b.assign_attributes(
-    organization: organization_b,
-    role: "manager",
-    active: true,
-    start_date: Date.current - 365.days
-  )
-
-  membership_b.save!
-
-  puts "✓ Team memberships"
+  puts "✓ Team memberships: #{TeamMembership.where(organization: organization).count}"
 
   # ============================================================
   # VEHICLES
   # ============================================================
 
-  vehicles = {}
+  vehicle_definitions = [
+    ["AA-001-AA", "Utilitaire Paysage 01", "Renault", "Master", "van", "diesel", 1200.0, 8.5, 2024],
+    ["AA-002-AA", "Utilitaire Paysage 02", "Peugeot", "Boxer", "van", "diesel", 1400.0, 8.9, 2023],
+    ["AA-003-AA", "Camion Benne 01", "Renault", "Maxity", "truck", "diesel", 2500.0, 11.2, 2022],
+    ["AA-004-AA", "Fourgon Arboricole", "Ford", "Transit", "van", "diesel", 1000.0, 8.1, 2024]
+  ]
 
-  vehicle_a = Vehicle.find_or_initialize_by(
-    organization: organization_a,
-    registration_number: "AA-001-AA"
-  )
+  vehicles = []
 
-  vehicle_a.assign_attributes(
-    name: "Utilitaire Paysage 01",
-    brand: "Renault",
-    model: "Master",
-    vehicle_type: "van",
-    fuel_type: "diesel",
-    capacity: 1200.0,
-    fuel_consumption: 8.5,
-    year: 2024,
-    active: true,
-    notes: "Véhicule principal de l'équipe terrain."
-  )
+  vehicle_definitions.each do |data|
+    vehicle = Vehicle.find_or_initialize_by(
+      organization: organization,
+      registration_number: data[0]
+    )
 
-  vehicle_a.save!
-  vehicles[:vehicle_a] = vehicle_a
+    vehicle.assign_attributes(
+      name: data[1],
+      brand: data[2],
+      model: data[3],
+      vehicle_type: data[4],
+      fuel_type: data[5],
+      capacity: data[6],
+      fuel_consumption: data[7],
+      year: data[8],
+      active: true,
+      notes: "Véhicule GreenPilot — flotte opérationnelle."
+    )
 
-  vehicle_b = Vehicle.find_or_initialize_by(
-    organization: organization_b,
-    registration_number: "BB-002-BB"
-  )
+    vehicle.save!
+    vehicles << vehicle
+  end
 
-  vehicle_b.assign_attributes(
-    name: "Utilitaire Création 01",
-    brand: "Peugeot",
-    model: "Boxer",
-    vehicle_type: "van",
-    fuel_type: "diesel",
-    capacity: 1500.0,
-    fuel_consumption: 9.0,
-    year: 2023,
-    active: true,
-    notes: "Véhicule dédié aux projets de création."
-  )
-
-  vehicle_b.save!
-  vehicles[:vehicle_b] = vehicle_b
-
-  puts "✓ Vehicles"
+  puts "✓ Vehicles: #{vehicles.count}"
 
   # ============================================================
   # EQUIPMENT
   # ============================================================
 
-  equipment_a = Equipment.find_or_initialize_by(
-    organization: organization_a,
-    name: "Tondeuse professionnelle"
-  )
+  equipment_definitions = [
+    ["Tondeuse Honda HRX", "mower", "Honda", "HRX", "GP-MOW-001", "available"],
+    ["Tondeuse professionnelle", "mower", "Toro", "Pro 21", "GP-MOW-002", "in_use"],
+    ["Taille-haie Stihl", "hedge_trimmer", "Stihl", "HS 82", "GP-HED-001", "available"],
+    ["Taille-haie sur perche", "hedge_trimmer", "Stihl", "HL 94", "GP-HED-002", "available"],
+    ["Débroussailleuse", "brushcutter", "Stihl", "FS 131", "GP-BRU-001", "in_use"],
+    ["Débroussailleuse légère", "brushcutter", "Honda", "UMK", "GP-BRU-002", "available"],
+    ["Souffleur", "blower", "Stihl", "BR 600", "GP-BLO-001", "available"],
+    ["Souffleur compact", "blower", "Makita", "EB5300", "GP-BLO-002", "maintenance"],
+    ["Tronçonneuse", "chainsaw", "Stihl", "MS 261", "GP-CHA-001", "available"],
+    ["Élagueuse sur perche", "pole_saw", "Stihl", "HT 135", "GP-POL-001", "available"],
+    ["Scarificateur", "scarifier", "Honda", "FG 110", "GP-SCA-001", "available"],
+    ["Motobineuse", "tiller", "Honda", "F 220", "GP-TIL-001", "in_use"],
+    ["Tarière", "auger", "Stihl", "BT 131", "GP-AUG-001", "available"],
+    ["Broyeur végétaux", "chipper", "Jo Beau", "M300", "GP-CHI-001", "available"],
+    ["Groupe électrogène", "generator", "Honda", "EU30", "GP-GEN-001", "out_of_service"]
+  ]
 
-  equipment_a.assign_attributes(
-    equipment_type: "mower",
-    brand: "Honda",
-    model: "HRX",
-    serial_number: "GP-MOWER-001",
-    purchase_date: Date.current - 365.days,
-    purchase_price: 2500.00,
-    status: "available",
-    active: true,
-    maintenance_interval_days: 90,
-    last_maintenance_at: Date.current - 20.days,
-    next_maintenance_at: Date.current + 70.days,
-    notes: "Tondeuse principale."
-  )
+  equipment_definitions.each_with_index do |data, index|
+    equipment = Equipment.find_or_initialize_by(
+      organization: organization,
+      name: data[0]
+    )
 
-  equipment_a.save!
+    equipment.assign_attributes(
+      equipment_type: data[1],
+      brand: data[2],
+      model: data[3],
+      serial_number: data[4],
+      purchase_date: today - (120 + index * 35).days,
+      purchase_price: 650.0 + (index * 325.0),
+      status: data[5],
+      active: data[5] != "retired",
+      maintenance_interval_days: 90,
+      last_maintenance_at: today - (10 + index).days,
+      next_maintenance_at: today + (80 - index).days,
+      notes: "Équipement opérationnel GreenPilot."
+    )
 
-  equipment_b = Equipment.find_or_initialize_by(
-    organization: organization_b,
-    name: "Taille-haie professionnel"
-  )
+    equipment.save!
+  end
 
-  equipment_b.assign_attributes(
-    equipment_type: "hedge_trimmer",
-    brand: "Stihl",
-    model: "HS 82",
-    serial_number: "GP-HEDGE-001",
-    purchase_date: Date.current - 240.days,
-    purchase_price: 850.00,
-    status: "available",
-    active: true,
-    maintenance_interval_days: 90,
-    last_maintenance_at: Date.current - 15.days,
-    next_maintenance_at: Date.current + 75.days,
-    notes: "Matériel utilisé pour les opérations de taille."
-  )
-
-  equipment_b.save!
-
-  puts "✓ Equipment"
+  puts "✓ Equipment: #{Equipment.where(organization: organization).count}"
 
   # ============================================================
   # QUOTES
   # ============================================================
 
-  quotes = {}
+  quotes = []
 
-  quote_a = Quote.find_or_initialize_by(
-    organization: organization_a,
-    number: "DEV-2026-0001"
-  )
+  quote_statuses = [
+    "draft",
+    "sent",
+    "accepted",
+    "accepted",
+    "accepted",
+    "rejected",
+    "expired",
+    "sent",
+    "accepted",
+    "draft",
+    "accepted",
+    "sent",
+    "rejected",
+    "accepted",
+    "accepted",
+    "draft",
+    "sent",
+    "accepted",
+    "expired",
+    "accepted"
+  ]
 
-  quote_a.assign_attributes(
-    customer: customer_a,
-    site: site_a,
-    title: "Entretien annuel du jardin",
-    description: "Programme annuel d'entretien des espaces verts.",
-    issue_date: Date.current - 15.days,
-    valid_until: Date.current + 15.days,
-    status: "accepted",
-    subtotal: 800.00,
-    discount_amount: 0.00,
-    tax_amount: 160.00,
-    total_amount: 960.00,
-    estimated_cost: 560.00,
-    estimated_margin_amount: 240.00,
-    estimated_margin_percentage: 30.00,
-    notes: "Devis accepté par le client.",
-    accepted_at: Date.current - 10.days
-  )
+  20.times do |index|
+    customer = customers[index % customers.length]
+    site = sites[index % sites.length]
+    issue_date = today - (index * 6 + 2).days
+    status = quote_statuses[index]
 
-  quote_a.save!
-  quotes[:quote_a] = quote_a
+    subtotal = money.call(850 + (index * 137))
+    discount = index % 5 == 0 ? money.call(50) : money.call(0)
+    tax = (subtotal - discount) * money.call("0.20")
+    total = subtotal - discount + tax
+    estimated_cost = (subtotal - discount) * money.call("0.62")
+    margin = subtotal - discount - estimated_cost
 
-  quote_b = Quote.find_or_initialize_by(
-    organization: organization_b,
-    number: "DEV-2026-0002"
-  )
+    quote = Quote.find_or_initialize_by(
+      organization: organization,
+      number: format("DEV-%<year>s-%<number>04d", year: today.year, number: index + 1)
+    )
 
-  quote_b.assign_attributes(
-    customer: customer_b,
-    site: site_b,
-    title: "Création d'espace vert",
-    description: "Création complète d'un espace paysager.",
-    issue_date: Date.current - 10.days,
-    valid_until: Date.current + 20.days,
-    status: "accepted",
-    subtotal: 2500.00,
-    discount_amount: 0.00,
-    tax_amount: 500.00,
-    total_amount: 3000.00,
-    estimated_cost: 1625.00,
-    estimated_margin_amount: 875.00,
-    estimated_margin_percentage: 35.00,
-    notes: "Projet de création accepté.",
-    accepted_at: Date.current - 5.days
-  )
+    quote.assign_attributes(
+      customer: customer,
+      site: site,
+      title: [
+        "Entretien annuel des espaces verts",
+        "Création paysagère",
+        "Taille et remise en forme",
+        "Programme d'entretien saisonnier",
+        "Aménagement du jardin",
+        "Maintenance arboricole"
+      ][index % 6],
+      description: "Proposition commerciale GreenPilot pour #{site.name}.",
+      issue_date: issue_date,
+      valid_until: issue_date + 30.days,
+      status: status,
+      subtotal: subtotal,
+      discount_amount: discount,
+      tax_amount: tax,
+      total_amount: total,
+      estimated_cost: estimated_cost,
+      estimated_margin_amount: margin,
+      estimated_margin_percentage: subtotal.zero? ? 0 : ((margin / subtotal) * 100),
+      notes: "Devis de démonstration #{index + 1}.",
+      accepted_at: status == "accepted" ? issue_date + 5.days : nil,
+      rejected_at: status == "rejected" ? issue_date + 7.days : nil
+    )
 
-  quote_b.save!
-  quotes[:quote_b] = quote_b
+    quote.save!
+    quotes << quote
+  end
 
-  puts "✓ Quotes"
+  puts "✓ Quotes: #{quotes.count}"
 
   # ============================================================
   # QUOTE ITEMS
   # ============================================================
 
-  quote_item_a = QuoteItem.find_or_initialize_by(
-    quote: quote_a,
-    position: 1
+  quotes.each_with_index do |quote, quote_index|
+    2.times do |line_index|
+      service_item = service_items[(quote_index * 2 + line_index) % service_items.length]
+
+      quantity =
+        if service_item.unit == "unité"
+          2 + (quote_index % 4)
+        elsif service_item.unit == "heure"
+          3 + (quote_index % 5)
+        elsif service_item.unit == "forfait"
+          1
+        elsif service_item.unit == "ml"
+          20 + (quote_index * 3)
+        else
+          80 + (quote_index * 10)
+        end
+
+      unit_price = service_item.default_unit_price
+      subtotal = money.call(quantity) * money.call(unit_price)
+      discount_percentage = quote_index % 6 == 0 ? 5.0 : 0.0
+      discounted_subtotal = subtotal * (money.call(100) - money.call(discount_percentage)) / money.call(100)
+      tax_rate = 20.0
+      tax_amount = discounted_subtotal * money.call("0.20")
+      total_amount = discounted_subtotal + tax_amount
+
+      labor_cost = money.call(quantity) * money.call(service_item.labor_cost || 0)
+      material_cost = money.call(quantity) * money.call(service_item.material_cost || 0)
+      equipment_cost = money.call(quantity) * money.call(service_item.equipment_cost || 0)
+      estimated_cost = labor_cost + material_cost + equipment_cost
+      margin_amount = discounted_subtotal - estimated_cost
+
+      item = QuoteItem.find_or_initialize_by(
+        quote: quote,
+        position: line_index + 1
+      )
+
+      item.assign_attributes(
+        service_item: service_item,
+        description: service_item.name,
+        quantity: quantity,
+        unit: service_item.unit,
+        unit_price: unit_price,
+        discount_percentage: discount_percentage,
+        tax_rate: tax_rate,
+        subtotal: discounted_subtotal,
+        tax_amount: tax_amount,
+        total_amount: total_amount,
+        labor_cost: labor_cost,
+        material_cost: material_cost,
+        equipment_cost: equipment_cost,
+        estimated_cost: estimated_cost,
+        margin_amount: margin_amount,
+        margin_percentage: discounted_subtotal.zero? ? 0 : ((margin_amount / discounted_subtotal) * 100),
+        estimated_duration_minutes: service_item.estimated_duration_minutes
+      )
+
+      item.save!
+    end
+  end
+
+ puts "✓ Quote items: #{QuoteItem.where(quote_id: quotes.map(&:id)).count}"
+
+# ------------------------------------------------------------
+# Jobs
+# ------------------------------------------------------------
+
+jobs = []
+
+35.times do |index|
+  site = sites[index % sites.length]
+  customer = site.customer
+
+  scheduled_date =
+    if index < 12
+      Date.current - (35 - index).days
+    elsif index < 24
+      Date.current + (index - 11).days
+    else
+      Date.current + (index - 20).days
+    end
+
+  status =
+    case index
+    when 0..7
+      "completed"
+    when 8..11
+      "in_progress"
+    when 12..24
+      "planned"
+    when 25..30
+      "planned"
+    else
+      "cancelled"
+    end
+
+  priority =
+    case index % 4
+    when 0
+      "high"
+    when 1
+      "normal"
+    when 2
+      "low"
+    else
+      "urgent"
+    end
+
+  weather_risk =
+    case index % 4
+    when 0
+      "low"
+    when 1
+      "medium"
+    when 2
+      "unknown"
+    else
+      "high"
+    end
+
+  quote =
+    quotes.find do |candidate|
+      candidate.customer_id == customer.id &&
+        candidate.site_id == site.id
+    end
+
+  start_hour = 8 + (index % 3)
+
+  scheduled_start_at =
+    Time.zone.parse(
+      "#{scheduled_date} #{format('%02d', start_hour)}:00"
+    )
+
+  scheduled_end_at =
+    scheduled_start_at + (2 + (index % 4)).hours
+
+  completed_at =
+    status == "completed" ? scheduled_end_at : nil
+
+  started_at =
+    %w[in_progress completed].include?(status) ?
+      scheduled_start_at + 15.minutes :
+      nil
+
+  actual_duration_minutes =
+    if status == "completed"
+      90 + ((index % 5) * 30)
+    elsif status == "in_progress"
+      60 + ((index % 3) * 30)
+    end
+  cancelled_at = status == "cancelled" ? scheduled_start_at : nil
+
+  cancellation_reason = status == "cancelled" ? "Intervention annulée par le client." : nil
+
+  job = Job.create!(
+    organization: organization,
+    customer: customer,
+    site: site,
+    quote: quote,
+    title: [
+      "Entretien espaces verts",
+      "Taille de haies",
+      "Tonte et finitions",
+      "Élagage préventif",
+      "Entretien massif",
+      "Maintenance arrosage",
+      "Débroussaillage",
+      "Remise en état du jardin"
+    ][index % 8],
+    description: [
+      "Intervention d'entretien courant du site.",
+      "Travaux de taille et évacuation des déchets verts.",
+      "Prestation complète avec finitions et nettoyage.",
+      "Intervention technique planifiée selon les besoins du site."
+    ][index % 4],
+    job_type: [
+      "maintenance",
+      "chantier",
+      "elagage",
+      "arrosage"
+    ][index % 4],
+    status: status,
+    priority: priority,
+    weather_risk: weather_risk,
+    scheduled_date: scheduled_date,
+    scheduled_start_at: scheduled_start_at,
+    scheduled_end_at: scheduled_end_at,
+    started_at: started_at,
+    completed_at: completed_at,
+    cancelled_at: cancelled_at,
+    cancellation_reason: cancellation_reason,
+    estimated_duration_minutes: 120 + ((index % 4) * 60),
+    actual_duration_minutes: actual_duration_minutes,
+    address: site.address_line1,
+    latitude: site.latitude,
+    longitude: site.longitude,
+    travel_distance_km: 5 + ((index * 3) % 35),
+    travel_duration_minutes: 10 + ((index * 5) % 40),
+    customer_notes: "Prévenir le client avant l'arrivée de l'équipe.",
+    internal_notes: "Vérifier le matériel avant départ.",
+    weather_notes: weather_risk == "high" ? "Surveiller les conditions météo." : nil,
+    team: teams[index % teams.length],
+    vehicle: vehicles[index % vehicles.length]
   )
 
-  quote_item_a.assign_attributes(
-    service_item: item_a,
-    description: "Tonte professionnelle des espaces verts",
-    quantity: 100.000,
-    unit: "m2",
-    unit_price: 0.80,
-    discount_percentage: 0.00,
-    tax_rate: 20.00,
-    subtotal: 80.00,
-    tax_amount: 16.00,
-    total_amount: 96.00,
-    labor_cost: 40.00,
-    material_cost: 5.00,
-    equipment_cost: 10.00,
-    estimated_cost: 55.00,
-    margin_amount: 25.00,
-    margin_percentage: 31.25,
-    estimated_duration_minutes: 60
-  )
+  jobs << job
+end
 
-  quote_item_a.save!
-
-  quote_item_b = QuoteItem.find_or_initialize_by(
-    quote: quote_b,
-    position: 1
-  )
-
-  quote_item_b.assign_attributes(
-    service_item: item_b,
-    description: "Création et aménagement d'espace vert",
-    quantity: 100.000,
-    unit: "m2",
-    unit_price: 25.00,
-    discount_percentage: 0.00,
-    tax_rate: 20.00,
-    subtotal: 2500.00,
-    tax_amount: 500.00,
-    total_amount: 3000.00,
-    labor_cost: 500.00,
-    material_cost: 800.00,
-    equipment_cost: 100.00,
-    estimated_cost: 1625.00,
-    margin_amount: 875.00,
-    margin_percentage: 35.00,
-    estimated_duration_minutes: 480
-  )
-
-  quote_item_b.save!
-
-  puts "✓ Quote items"
-
-  # ============================================================
-  # JOBS
-  # ============================================================
-
-  jobs = {}
-
-  job_a = Job.find_or_initialize_by(
-    organization: organization_a,
-    title: "Entretien jardin principal"
-  )
-
-  job_a.assign_attributes(
-    customer: customer_a,
-    site: site_a,
-    quote: quote_a,
-    team: team_a,
-    vehicle: vehicle_a,
-    job_type: "maintenance",
-    description: "Tonte et entretien général du jardin.",
-    customer_notes: "Accès par le portail principal.",
-    internal_notes: "Prévoir la tondeuse professionnelle.",
-    address: site_a.address_line1,
-    scheduled_date: Date.current,
-    scheduled_start_at: Time.zone.parse("2026-08-22 08:00"),
-    scheduled_end_at: Time.zone.parse("2026-08-22 10:00"),
-    estimated_duration_minutes: 120,
-    actual_duration_minutes: 110,
-    status: "completed",
-    priority: "normal",
-    started_at: Time.zone.parse("2026-08-22 08:05"),
-    completed_at: Time.zone.parse("2026-08-22 09:55"),
-    travel_distance_km: 8.5,
-    travel_duration_minutes: 20,
-    weather_risk: "low",
-    weather_notes: "Conditions favorables.",
-    #active: true
-  )
-
-  # `active` n'existe pas dans jobs selon le schema.
-  job_a.attributes.delete("active")
-
-  job_a.save!
-  jobs[:job_a] = job_a
-
-  job_b = Job.find_or_initialize_by(
-    organization: organization_b,
-    title: "Création espace vert"
-  )
-
-  job_b.assign_attributes(
-    customer: customer_b,
-    site: site_b,
-    quote: quote_b,
-    team: team_b,
-    vehicle: vehicle_b,
-    job_type: "creation",
-    description: "Création complète de l'espace vert.",
-    customer_notes: "Travaux à réaliser en journée.",
-    internal_notes: "Prévoir matériel de création.",
-    address: site_b.address_line1,
-    scheduled_date: Date.current,
-    scheduled_start_at: Time.zone.parse("2026-08-22 08:00"),
-    scheduled_end_at: Time.zone.parse("2026-08-22 16:00"),
-    estimated_duration_minutes: 480,
-    status: "planned",
-    priority: "high",
-    weather_risk: "unknown"
-  )
-
-  job_b.save!
-  jobs[:job_b] = job_b
-
-  puts "✓ Jobs"
-
+puts "✓ Jobs: #{jobs.count}"
   # ============================================================
   # JOB ASSIGNMENTS
   # ============================================================
 
-  assignment_a = JobAssignment.find_or_initialize_by(
-    job: job_a,
-    user: users[:field_worker_a]
-  )
+  assignment_users = [
+    users[:field_worker_1],
+    users[:field_worker_2],
+    users[:manager],
+    users[:admin],
+    users[:owner],
+    users[:member],
+    users[:accountant]
+  ]
 
-  assignment_a.assign_attributes(
-    organization: organization_a,
-    assignment_type: "primary",
-    role: "worker",
-    #active: true,
-    assigned_at: Time.zone.parse("2026-08-22 07:45"),
-    accepted_at: Time.zone.parse("2026-08-22 07:50"),
-    completed_at: Time.zone.parse("2026-08-22 10:00"),
-    notes: "Intervention principale."
-  )
+  7.times do |index|
+    job = jobs[index]
 
-  assignment_a.save!
+    assignment = JobAssignment.find_or_initialize_by(
+      job: job,
+      user: assignment_users[index]
+    )
 
-  assignment_b = JobAssignment.find_or_initialize_by(
-    job: job_b,
-    user: users[:manager_b]
-  )
+    assignment.assign_attributes(
+      organization: organization,
+      assignment_type: index.even? ? "primary" : "secondary",
+      role: index < 3 ? "worker" : "supervisor",
+      active: true,
+      assigned_at: datetime.call(job.scheduled_date, 7, 30),
+      accepted_at: datetime.call(job.scheduled_date, 7, 45),
+      completed_at: job.status == status_completed ? datetime.call(job.scheduled_date, 10, 30) : nil,
+      notes: "Affectation terrain GreenPilot."
+    )
 
-  assignment_b.assign_attributes(
-    organization: organization_b,
-    assignment_type: "primary",
-    role: "manager",
-    #active: true,
-    assigned_at: Time.zone.parse("2026-08-22 07:45"),
-    accepted_at: Time.zone.parse("2026-08-22 07:50"),
-    notes: "Responsable du projet."
-  )
+    assignment.save!
+  end
 
-  assignment_b.save!
-
-  puts "✓ Job assignments"
+  puts "✓ Job assignments: #{JobAssignment.where(organization: organization).count}"
 
   # ============================================================
   # JOB TIME ENTRIES
   # ============================================================
 
-  time_entry_a = JobTimeEntry.find_or_initialize_by(
-    job: job_a,
-    user: users[:field_worker_a],
-    started_at: Time.zone.parse("2026-08-22 08:05")
-  )
+  jobs.each_with_index do |job, index|
+    user =
+      if index.even?
+        users[:field_worker_1]
+      else
+        users[:field_worker_2]
+      end
 
-  time_entry_a.assign_attributes(
-    organization: organization_a,
-    entry_type: "work",
-    ended_at: Time.zone.parse("2026-08-22 09:55"),
-    duration_minutes: 110,
-    notes: "Tonte et nettoyage du site."
-  )
+    started_at =
+      if job.started_at
+        job.started_at
+      else
+        datetime.call(job.scheduled_date, 8, 0)
+      end
 
-  time_entry_a.save!
+    duration =
+      if job.actual_duration_minutes
+        job.actual_duration_minutes
+      else
+        job.estimated_duration_minutes
+      end
 
-  time_entry_b = JobTimeEntry.find_or_initialize_by(
-    job: job_b,
-    user: users[:manager_b],
-    started_at: Time.zone.parse("2026-08-22 08:00")
-  )
+    entry = JobTimeEntry.find_or_initialize_by(
+      job: job,
+      user: user,
+      started_at: started_at
+    )
 
-  time_entry_b.assign_attributes(
-    organization: organization_b,
-    entry_type: "work",
-    ended_at: nil,
-    duration_minutes: nil,
-    notes: "Démarrage du chantier."
-  )
+    entry.assign_attributes(
+      organization: organization,
+      entry_type: index % 4 == 0 ? "travel" : "work",
+      ended_at: started_at + duration.minutes,
+      duration_minutes: duration,
+      notes: "Temps terrain enregistré pour la démonstration."
+    )
 
-  time_entry_b.save!
+    entry.save!
+  end
 
-  puts "✓ Job time entries"
+  puts "✓ Job time entries: #{JobTimeEntry.where(organization: organization).count}"
 
   # ============================================================
   # JOB REPORTS
   # ============================================================
 
-  report_a = JobReport.find_or_initialize_by(
-    job: job_a
-  )
+  completed_jobs = jobs.select { |job| job.status == status_completed }
 
-  report_a.assign_attributes(
-    organization: organization_a,
-    summary: "Entretien du jardin terminé.",
-    work_performed: "Tonte complète de la pelouse et nettoyage des abords.",
-    observations: "Pelouse en bon état général.",
-    recommendations: "Prévoir une nouvelle tonte dans deux semaines.",
-    generated_at: Time.current,
-    customer_signature: "Marc Leroy",
-    customer_signed_at: Time.current,
-    sent_to_customer_at: Time.current
-  )
+  completed_jobs.first(25).each_with_index do |job, index|
+    report = JobReport.find_or_initialize_by(
+      job: job
+    )
 
-  report_a.save!
+    generated_at = datetime.call(job.scheduled_date, 16, 30)
 
-  report_b = JobReport.find_or_initialize_by(
-    job: job_b
-  )
+    report.assign_attributes(
+      organization: organization,
+      summary: "Intervention #{index + 1} terminée avec succès.",
+      work_performed: "Travaux réalisés conformément à l'ordre de travail.",
+      observations: [
+        "Site en bon état général.",
+        "Végétation correctement entretenue.",
+        "Quelques zones nécessitent une surveillance.",
+        "Aucun incident constaté."
+      ][index % 4],
+      recommendations: [
+        "Prévoir une nouvelle intervention dans deux semaines.",
+        "Maintenir le programme d'entretien actuel.",
+        "Prévoir une taille complémentaire au prochain passage.",
+        "Contrôler l'arrosage lors de la prochaine visite."
+      ][index % 4],
+      generated_at: generated_at,
+      customer_signature: index.even? ? "Signature client" : nil,
+      customer_signed_at: index.even? ? generated_at + 15.minutes : nil,
+      sent_to_customer_at: generated_at + 30.minutes
+    )
 
-  report_b.assign_attributes(
-    organization: organization_b,
-    summary: "Projet de création en cours.",
-    work_performed: "Préparation initiale du terrain.",
-    observations: "Terrain prêt pour les prochaines étapes.",
-    recommendations: "Poursuivre les travaux selon le planning.",
-    generated_at: nil,
-    sent_to_customer_at: nil
-  )
+    report.save!
+  end
 
-  report_b.save!
-
-  puts "✓ Job reports"
+  puts "✓ Job reports: #{JobReport.where(organization: organization).count}"
 
   # ============================================================
   # INVOICES
   # ============================================================
 
-  invoices = {}
+  invoice_statuses = [
+    "paid",
+    "paid",
+    "issued",
+    "overdue",
+    "paid",
+    "draft",
+    "issued",
+    "paid",
+    "overdue",
+    "paid",
+    "issued",
+    "paid",
+    "cancelled",
+    "paid",
+    "issued",
+    "draft",
+    "paid",
+    "overdue",
+    "issued",
+    "paid",
+    "paid",
+    "issued",
+    "overdue",
+    "paid",
+    "draft"
+  ]
 
-  invoice_a = Invoice.find_or_initialize_by(
-    organization: organization_a,
-    number: "INV-2026-0001"
-  )
+  invoices = []
 
-  invoice_a.assign_attributes(
-    customer: customer_a,
-    job: job_a,
-    quote: quote_a,
-    site: site_a,
-    issue_date: Date.current,
-    due_date: Date.current + 30.days,
-    status: "issued",
-    subtotal: 1000.00,
-    discount_amount: 0.00,
-    tax_amount: 200.00,
-    total_amount: 1200.00,
-    amount_paid: 0.00,
-    amount_due: 1200.00,
-    notes: "Facture entretien jardin principal."
-  )
+  25.times do |index|
+    customer = customers[index % customers.length]
+    site = sites[index % sites.length]
+    job = jobs[index % jobs.length]
+    quote = quotes[index % quotes.length]
 
-  invoice_a.save!
-  invoices[:invoice_a] = invoice_a
+    issue_date = today - (index * 5 + 3).days
+    due_date = issue_date + 30.days
 
-  invoice_b = Invoice.find_or_initialize_by(
-    organization: organization_b,
-    number: "INV-2026-0002"
-  )
+    subtotal = money.call(650 + (index * 185))
+    discount = index % 7 == 0 ? money.call(75) : money.call(0)
+    taxable = subtotal - discount
+    tax = taxable * money.call("0.20")
+    total = taxable + tax
 
-  invoice_b.assign_attributes(
-    customer: customer_b,
-    job: job_b,
-    quote: quote_b,
-    site: site_b,
-    issue_date: Date.current,
-    due_date: Date.current + 30.days,
-    status: "issued",
-    subtotal: 2000.00,
-    discount_amount: 0.00,
-    tax_amount: 400.00,
-    total_amount: 2400.00,
-    amount_paid: 0.00,
-    amount_due: 2400.00,
-    notes: "Facture création espace vert."
-  )
+    status = invoice_statuses[index]
 
-  invoice_b.save!
-  invoices[:invoice_b] = invoice_b
+    paid =
+      case status
+      when "paid"
+        total
+      when "issued"
+        index.even? ? total * money.call("0.25") : money.call(0)
+      when "overdue"
+        total * money.call("0.10")
+      else
+        money.call(0)
+      end
 
-  puts "✓ Invoices"
+    amount_due = total - paid
+
+    invoice = Invoice.find_or_initialize_by(
+      organization: organization,
+      number: format("FAC-%<year>s-%<number>04d", year: today.year, number: index + 1)
+    )
+
+    invoice.assign_attributes(
+      customer: customer,
+      job: job,
+      quote: quote,
+      site: site,
+      issue_date: issue_date,
+      due_date: due_date,
+      status: status,
+      subtotal: subtotal,
+      discount_amount: discount,
+      tax_amount: tax,
+      total_amount: total,
+      amount_paid: paid,
+      amount_due: amount_due,
+      paid_at: status == "paid" ? issue_date + 12.days : nil,
+      payment_method: status == "paid" ? "bank_transfer" : nil,
+      payment_reference: status == "paid" ? "VIR-#{today.year}-#{index + 1}" : nil,
+      notes: "Facture de démonstration GreenPilot ##{index + 1}."
+    )
+
+    invoice.save!
+    invoices << invoice
+  end
+
+  puts "✓ Invoices: #{invoices.count}"
 
   # ============================================================
   # INVOICE ITEMS
   # ============================================================
 
-  invoice_item_a = InvoiceItem.find_or_initialize_by(
-    invoice: invoice_a,
-    position: 1
-  )
+  invoices.each_with_index do |invoice, index|
+    service_item = service_items[index % service_items.length]
 
-  invoice_item_a.assign_attributes(
-    service_item: item_a,
-    description: "Tonte professionnelle des espaces verts",
-    quantity: 100.000,
-    unit: "m2",
-    unit_price: 10.00,
-    discount_percentage: 0.00,
-    tax_rate: 20.00,
-    subtotal: 1000.00,
-    tax_amount: 200.00,
-    total_amount: 1200.00
-  )
+    quantity =
+      if service_item.unit == "unité"
+        2
+      elsif service_item.unit == "heure"
+        4
+      elsif service_item.unit == "forfait"
+        1
+      elsif service_item.unit == "ml"
+        25
+      else
+        100
+      end
 
-  invoice_item_a.save!
+    taxable_subtotal = money.call(invoice.subtotal) - money.call(invoice.discount_amount)
+    quantity = 1 if taxable_subtotal <= 0
 
-  invoice_item_b = InvoiceItem.find_or_initialize_by(
-    invoice: invoice_b,
-    position: 1
-  )
+    unit_price = taxable_subtotal / money.call(quantity)
+    tax_rate = 20.0
+    tax_amount = taxable_subtotal * money.call("0.20")
+    total_amount = taxable_subtotal + tax_amount
 
-  invoice_item_b.assign_attributes(
-    service_item: item_b,
-    description: "Création et aménagement d'espace vert",
-    quantity: 80.000,
-    unit: "m2",
-    unit_price: 25.00,
-    discount_percentage: 0.00,
-    tax_rate: 20.00,
-    subtotal: 2000.00,
-    tax_amount: 400.00,
-    total_amount: 2400.00
-  )
+    item = InvoiceItem.find_or_initialize_by(
+      invoice: invoice,
+      position: index + 1
+    )
 
-  invoice_item_b.save!
+    item.assign_attributes(
+      service_item: service_item,
+      description: service_item.name,
+      quantity: quantity,
+      unit: service_item.unit,
+      unit_price: unit_price,
+      discount_percentage: invoice.discount_amount.to_f.positive? ? 5.0 : 0.0,
+      tax_rate: tax_rate,
+      subtotal: taxable_subtotal,
+      tax_amount: tax_amount,
+      total_amount: total_amount
+    )
 
-  puts "✓ Invoice items"
+    item.save!
+  end
 
-  puts "Seeding GreenPilot plans..."
-
-  plans = [
-  {
-    name: "Starter",
-    slug: "starter",
-    monthly_price_cents: 2_900,
-    yearly_price_cents: 29_000,
-    max_users: 1,
-    active: true
-  },
-  {
-    name: "Pro",
-    slug: "pro",
-    monthly_price_cents: 5_900,
-    yearly_price_cents: 59_000,
-    max_users: 5,
-    active: true
-  },
-  {
-    name: "Business",
-    slug: "business",
-    monthly_price_cents: 9_900,
-    yearly_price_cents: 99_000,
-    max_users: 15,
-    active: true
-  },
-  {
-    name: "Founder",
-    slug: "founder",
-    monthly_price_cents: 3_900,
-    yearly_price_cents: 39_000,
-    max_users: 5,
-    active: true
-  }
-]
-
-plans.each do |attributes|
-  plan = Plan.find_or_initialize_by(slug: attributes[:slug])
-  plan.assign_attributes(attributes)
-  plan.save!
-
-  puts "  ✓ #{plan.name} — #{plan.monthly_price_cents / 100.0} €/mois"
-end
-
-puts "GreenPilot plans seeded: #{Plan.count}"
-
-
-platform_admin = User.find_or_initialize_by(
-  email: "admin@usegreenpilot.pro"
-)
-
-platform_admin.assign_attributes(
-  organization: organization_a,
-  email: "admin@usegreenpilot.pro",
-  password: "ChangeMe123!",
-  password_confirmation: "ChangeMe123!",
-  first_name: "GreenPilot",
-  last_name: "Admin",
-  role: :owner,
-  platform_role: :platform_admin,
-  active: true
-)
-
-platform_admin.save!
+  puts "✓ Invoice items: #{InvoiceItem.joins(:invoice).where(invoices: { organization_id: organization.id }).count}"
 
   # ============================================================
-  # SUMMARY
+  # PLANS
+  # ============================================================
+
+  plans = [
+    {
+      name: "Starter",
+      slug: "starter",
+      monthly_price_cents: 2_900,
+      yearly_price_cents: 29_000,
+      max_users: 1,
+      active: true
+    },
+    {
+      name: "Pro",
+      slug: "pro",
+      monthly_price_cents: 5_900,
+      yearly_price_cents: 59_000,
+      max_users: 5,
+      active: true
+    },
+    {
+      name: "Business",
+      slug: "business",
+      monthly_price_cents: 9_900,
+      yearly_price_cents: 99_000,
+      max_users: 15,
+      active: true
+    },
+    {
+      name: "Founder",
+      slug: "founder",
+      monthly_price_cents: 3_900,
+      yearly_price_cents: 39_000,
+      max_users: 5,
+      active: true
+    }
+  ]
+
+  plans.each do |attributes|
+    plan = Plan.find_or_initialize_by(
+      slug: attributes[:slug]
+    )
+
+    plan.assign_attributes(attributes)
+    plan.save!
+  end
+
+  puts "✓ Plans: #{Plan.count}"
+
+  # ============================================================
+  # FINAL SUMMARY
   # ============================================================
 
   puts
-  puts "=============================================="
-  puts "🌱 GreenPilot seed completed successfully!"
-  puts "=============================================="
-  puts "Organizations:     #{Organization.count}"
-  puts "Users:             #{User.count}"
-  puts "Customers:         #{Customer.count}"
-  puts "Sites:             #{Site.count}"
-  puts "Categories:        #{ServiceCategory.count}"
-  puts "Service items:     #{ServiceItem.count}"
-  puts "Teams:             #{Team.count}"
-  puts "Memberships:       #{TeamMembership.count}"
-  puts "Vehicles:          #{Vehicle.count}"
-  puts "Equipment:         #{Equipment.count}"
-  puts "Quotes:            #{Quote.count}"
-  puts "Quote items:       #{QuoteItem.count}"
-  puts "Jobs:              #{Job.count}"
-  puts "Assignments:       #{JobAssignment.count}"
-  puts "Time entries:      #{JobTimeEntry.count}"
-  puts "Reports:           #{JobReport.count}"
-  puts "Invoices:          #{Invoice.count}"
-  puts "Invoice items:     #{InvoiceItem.count}"
-  puts "=============================================="
+  puts "============================================================"
+  puts " GREENPILOT DEMO SEED COMPLETED"
+  puts "============================================================"
+  puts
+  puts "Organization:      #{organization.name}"
+  puts
+  puts "Users:             #{User.where(organization: organization).count}"
+  puts "Customers:         #{Customer.where(organization: organization).count}"
+  puts "Sites:             #{Site.where(organization: organization).count}"
+  puts "Categories:        #{ServiceCategory.where(organization: organization).count}"
+  puts "Service items:     #{ServiceItem.where(organization: organization).count}"
+  puts "Teams:             #{Team.where(organization: organization).count}"
+  puts "Memberships:       #{TeamMembership.where(organization: organization).count}"
+  puts "Vehicles:          #{Vehicle.where(organization: organization).count}"
+  puts "Equipment:         #{Equipment.where(organization: organization).count}"
+  puts "Quotes:            #{Quote.where(organization: organization).count}"
+  puts "Quote items:       #{QuoteItem.joins(:quote).where(quotes: { organization_id: organization.id }).count}"
+  puts "Jobs:              #{Job.where(organization: organization).count}"
+  puts "Assignments:       #{JobAssignment.where(organization: organization).count}"
+  puts "Time entries:      #{JobTimeEntry.where(organization: organization).count}"
+  puts "Reports:           #{JobReport.where(organization: organization).count}"
+  puts "Invoices:          #{Invoice.where(organization: organization).count}"
+  puts "Invoice items:     #{InvoiceItem.joins(:invoice).where(invoices: { organization_id: organization.id }).count}"
+  puts
+  puts "Demo login:"
+  puts "  Organization: greenpilot-paysage"
+  puts "  Email:        owner@greenpilot-paysage.fr"
+  puts "  Password:     #{seed_password}"
+  puts
+  puts "============================================================"
 end
