@@ -112,7 +112,7 @@ ApplicationRecord.transaction do
       email: "owner@greenpilot-paysage.fr",
       first_name: "Pierre",
       last_name: "Martin",
-      phone: "0610000001",
+      phone: "0612000001",
       role: "owner"
     },
     {
