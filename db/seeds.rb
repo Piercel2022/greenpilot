@@ -128,7 +128,7 @@ ApplicationRecord.transaction do
       email: "manager@greenpilot-paysage.fr",
       first_name: "Thomas",
       last_name: "Dubois",
-      phone: "0600010003",
+      phone: "0600012003",
       role: "manager"
     },
     {
